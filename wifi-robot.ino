@@ -3,7 +3,6 @@
  * License: BSD <http://www.opensource.org/licenses/bsd-license.php>
  */
 
-
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 
@@ -161,6 +160,27 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	return wifiStatus == WL_CONNECTED;
 }
 
+
+/*
+ * Robot commands
+ */
+ 
+bool handleHttpRequest(char * req) {
+	if (req == NULL)
+		return false;
+	String strReq = req;
+	if (! strReq.startsWith("GET /"))
+		return false;
+	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
+	Serial.println(strReq);
+	wifiClient.println(strReq);
+	return true;
+}
+
+/* 
+ * Main loop
+ */
+
 void loop() {
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delay(1000);
@@ -175,7 +195,7 @@ void loop() {
 		}
 		reqBuffer[reqBufferIndex] = 0;
 		Serial.println(reqBuffer);
-		wifiClient.println(reqBuffer);
+		handleHttpRequest(reqBuffer);
 		delay(WIFI_CLIENT_DELAY);
 		wifiClient.stop();
 	}
