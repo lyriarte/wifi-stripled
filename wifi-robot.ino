@@ -18,8 +18,6 @@
 #define WIFI_CONNECT_DELAY 3000
 #define WIFI_CONNECT_RETRY 5
 
-#define LED 2
-
 #define REQ_BUFFER_SIZE 1024
 
 /* **** **** **** **** **** ****
@@ -86,7 +84,7 @@ typedef struct {
 
 LEDInfo ledInfos[] = {
 	{
-		LED,
+		2,
 		LOW
 	}
 };
@@ -97,9 +95,6 @@ LEDInfo ledInfos[] = {
  * **** **** **** **** **** ****/
 
 void setup() {
-#ifdef LED
-	pinMode(LED, OUTPUT);
-#endif
 	int i;
 	for (i=0; i < sizeof(ledInfos) / sizeof(LEDInfo); i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
@@ -138,9 +133,6 @@ bool wifiConnect(int retry) {
 	wifiStatus = WiFi.status();
 	if (wifiStatus == WL_CONNECTED)
 		return true;
-#ifdef LED
-	digitalWrite(LED, LOW);
-#endif
 	n = sizeof(networks) / sizeof(wifiNetInfo);
 	for (i=0; i<n; i++) {
 		if (wifiNetConnect(&networks[i], retry))
@@ -160,20 +152,11 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	while (wifiStatus != WL_CONNECTED && retry > 0) {
 		retry--;
 		Serial.print(".");
-#ifdef LED
-		digitalWrite(LED, HIGH);
-#endif
 		delay(WIFI_CONNECT_DELAY);
-#ifdef LED
-		digitalWrite(LED, LOW);
-#endif
 		wifiStatus = WiFi.status();
 	}
 	Serial.println();
 	if (wifiStatus == WL_CONNECTED) {
-#ifdef LED
-		digitalWrite(LED, HIGH);
-#endif
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
 		if (MDNS.begin(hostnameSSID)) {
