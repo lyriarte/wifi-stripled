@@ -21,6 +21,7 @@
 
 #define LED 2
 
+#define REQ_BUFFER_SIZE 1024
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -63,6 +64,12 @@ int wifiStatus = WL_IDLE_STATUS;
 char hostnameSSID[] = "ESP_XXXXXX";
 char wifiMacStr[] = "00:00:00:00:00:00";
 byte wifiMacBuf[6];
+
+/* 
+ * http request buffer
+ */
+char reqBuffer[REQ_BUFFER_SIZE];
+int reqBufferIndex=0;
 
 
 /* **** **** **** **** **** ****
@@ -162,13 +169,13 @@ void loop() {
 	wifiClient = wifiServer.available();
 	if (wifiClient && wifiClient.connected()) {
 		delay(100);
-		Serial.println("HTTP request:");
-		while (wifiClient.available()) {
-			char c = wifiClient.read();
-			Serial.print(c);
+		reqBufferIndex = 0;
+		while (wifiClient.available() && reqBufferIndex < REQ_BUFFER_SIZE-1) {
+			reqBuffer[reqBufferIndex++] = wifiClient.read();
 		}
-		Serial.println();
-		wifiClient.println();
+		reqBuffer[reqBufferIndex] = 0;
+		Serial.println(reqBuffer);
+		wifiClient.println(reqBuffer);
 		delay(WIFI_CLIENT_DELAY);
 		wifiClient.stop();
 	}
