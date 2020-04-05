@@ -72,6 +72,27 @@ int reqBufferIndex=0;
 
 
 /* **** **** **** **** **** ****
+ * Robot commands
+ * **** **** **** **** **** ****/
+
+/*
+ * LED
+ */
+ 
+typedef struct {
+  int gpio;
+  int state;
+} LEDInfo;
+
+LEDInfo ledInfos[] = {
+	{
+		LED,
+		LOW
+	}
+};
+
+
+/* **** **** **** **** **** ****
  * Functions
  * **** **** **** **** **** ****/
 
@@ -79,6 +100,9 @@ void setup() {
 #ifdef LED
 	pinMode(LED, OUTPUT);
 #endif
+	int i;
+	for (i=0; i < sizeof(ledInfos) / sizeof(LEDInfo); i++)
+		pinMode(ledInfos[i].gpio, OUTPUT);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
 	Serial.print("WiFi.macAddress: ");
@@ -164,8 +188,27 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 /*
  * Robot commands
  */
- 
-bool handleHttpRequest(char * req) {
+
+void updateLEDStatus(int index) {
+	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
+}
+
+bool handleLEDRequest(const char * req) {
+	String strReq = req;
+	int index = strReq.toInt();
+	if (index < 0 || index >= sizeof(ledInfos) / sizeof(LEDInfo))
+		return false;
+	if (strReq.endsWith("/ON"))
+		ledInfos[index].state = HIGH;
+	else if (strReq.endsWith("/OFF"))
+		ledInfos[index].state = LOW;
+	else
+		return false;
+	updateLEDStatus(index);
+	return true;
+}
+
+bool handleHttpRequest(const char * req) {
 	if (req == NULL)
 		return false;
 	String strReq = req;
@@ -174,7 +217,9 @@ bool handleHttpRequest(char * req) {
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
 	Serial.println(strReq);
 	wifiClient.println(strReq);
-	return true;
+	if (strReq.startsWith("LED/"))
+		return handleLEDRequest(strReq.substring(4).c_str());
+	return false;
 }
 
 /* 
