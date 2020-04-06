@@ -89,6 +89,8 @@ LEDInfo ledInfos[] = {
 	}
 };
 
+#define N_LED (sizeof(ledInfos) / sizeof(LEDInfo))
+
 
 /*
  * STEPPER
@@ -109,6 +111,8 @@ STEPPERInfo stepperInfos[] = {
 		0
 	}
 };
+
+#define N_STEPPER (sizeof(stepperInfos) / sizeof(STEPPERInfo))
 
 byte steps8[] = {
   HIGH,  LOW,  LOW,  LOW,
@@ -140,9 +144,9 @@ void step8(int pin1, int pin2, int pin3, int pin4) {
 
 void setup() {
 	int i,j;
-	for (i=0; i < sizeof(ledInfos) / sizeof(LEDInfo); i++)
+	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	for (i=0; i < sizeof(stepperInfos) / sizeof(STEPPERInfo); i++)
+	for (i=0; i < N_STEPPER; i++)
 		for (j=0; j < 4; j++)
 			pinMode(stepperInfos[i].gpios[j], OUTPUT);
 	Serial.begin(BPS_HOST);
@@ -226,7 +230,7 @@ void updateLEDStatus(int index) {
 bool handleLEDRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
-	if (index < 0 || index >= sizeof(ledInfos) / sizeof(LEDInfo))
+	if (index < 0 || index >= N_LED)
 		return false;
 	if (strReq.endsWith("/ON"))
 		ledInfos[index].state = HIGH;
@@ -254,7 +258,7 @@ void updateSTEPPERStatus(int index) {
 bool handleSTEPPERRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
-	if (index < 0 || index >= sizeof(stepperInfos) / sizeof(STEPPERInfo))
+	if (index < 0 || index >= N_STEPPER)
 		return false;
 	stepperInfos[index].steps = strReq.substring(strReq.indexOf("/")+1).toInt();
 	updateSTEPPERStatus(index);
