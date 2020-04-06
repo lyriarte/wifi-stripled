@@ -272,7 +272,6 @@ bool handleHttpRequest(const char * req) {
 	if (! strReq.startsWith("GET /"))
 		return false;
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
-	Serial.println(strReq);
 	wifiClient.println(strReq);
 	if (strReq.startsWith("LED/"))
 		return handleLEDRequest(strReq.substring(4).c_str());
@@ -298,7 +297,6 @@ void loop() {
 			reqBuffer[reqBufferIndex++] = wifiClient.read();
 		}
 		reqBuffer[reqBufferIndex] = 0;
-		Serial.println(reqBuffer);
 		handleHttpRequest(reqBuffer);
 		delay(WIFI_CLIENT_DELAY);
 		wifiClient.stop();
