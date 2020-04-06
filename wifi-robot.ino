@@ -276,12 +276,16 @@ bool handleHttpRequest(const char * req) {
 	if (! strReq.startsWith("GET /"))
 		return false;
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
-	wifiClient.println(strReq);
+	bool result = false;
 	if (strReq.startsWith("LED/"))
-		return handleLEDRequest(strReq.substring(4).c_str());
-	if (strReq.startsWith("STEPPER/"))
-		return handleSTEPPERRequest(strReq.substring(8).c_str());
-	return false;
+		result = handleLEDRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("STEPPER/"))
+		result = handleSTEPPERRequest(strReq.substring(8).c_str());
+	if (result)
+		wifiClient.println(strReq);
+	else
+		wifiClient.println("ERROR");
+	return result;
 }
 
 /* 
