@@ -102,12 +102,12 @@ typedef struct {
 } STEPPERInfo;
 
 STEPPERInfo stepperInfos[] = {
-	{
-		{12,13,14,15},
+	{// D0 D1 D2 D3
+		{16,5,4,0},
 		0
 	},
-	{
-		{0,4,5,16},
+	{// D5 D6 D7 D8
+		{14,12,13,15},
 		0
 	}
 };
