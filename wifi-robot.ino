@@ -238,20 +238,17 @@ bool handleLEDRequest(const char * req) {
 		ledInfos[index].state = LOW;
 	else
 		return false;
-	updateLEDStatus(index);
 	return true;
 }
 
 void updateSTEPPERStatus(int index) {
-	while (stepperInfos[index].steps) {
-		if (stepperInfos[index].steps > 0) {
-			step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3]);
-			stepperInfos[index].steps--;
-		}
-		else {
-			step8(stepperInfos[index].gpios[3],stepperInfos[index].gpios[2],stepperInfos[index].gpios[1],stepperInfos[index].gpios[0]);
-			stepperInfos[index].steps++;
-		}
+	if (stepperInfos[index].steps > 0) {
+		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3]);
+		stepperInfos[index].steps--;
+	}
+	else if (stepperInfos[index].steps < 0) {
+		step8(stepperInfos[index].gpios[3],stepperInfos[index].gpios[2],stepperInfos[index].gpios[1],stepperInfos[index].gpios[0]);
+		stepperInfos[index].steps++;
 	}
 }
 
@@ -261,7 +258,6 @@ bool handleSTEPPERRequest(const char * req) {
 	if (index < 0 || index >= N_STEPPER)
 		return false;
 	stepperInfos[index].steps = strReq.substring(strReq.indexOf("/")+1).toInt();
-	updateSTEPPERStatus(index);
 	return true;
 }
 
@@ -293,20 +289,29 @@ bool handleHttpRequest(const char * req) {
  */
 
 void loop() {
+	int deviceIndex;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delay(1000);
 	wifiServer.begin();
 	delay(200);
-	wifiClient = wifiServer.available();
-	if (wifiClient && wifiClient.connected()) {
-		delay(100);
-		reqBufferIndex = 0;
-		while (wifiClient.available() && reqBufferIndex < REQ_BUFFER_SIZE-1) {
-			reqBuffer[reqBufferIndex++] = wifiClient.read();
+	while (wifiStatus == WL_CONNECTED) {
+		wifiClient = wifiServer.available();
+		if (wifiClient && wifiClient.connected()) {
+			delay(100);
+			reqBufferIndex = 0;
+			while (wifiClient.available() && reqBufferIndex < REQ_BUFFER_SIZE-1) {
+				reqBuffer[reqBufferIndex++] = wifiClient.read();
+			}
+			reqBuffer[reqBufferIndex] = 0;
+			handleHttpRequest(reqBuffer);
+			delay(WIFI_CLIENT_DELAY);
+			wifiClient.stop();
 		}
-		reqBuffer[reqBufferIndex] = 0;
-		handleHttpRequest(reqBuffer);
-		delay(WIFI_CLIENT_DELAY);
-		wifiClient.stop();
+		for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
+			updateLEDStatus(deviceIndex);
+		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
+			updateSTEPPERStatus(deviceIndex);
+		wifiStatus = WiFi.status();
+		delay(10);
 	}
 }
