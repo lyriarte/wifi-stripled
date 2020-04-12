@@ -16,7 +16,7 @@ GET /LED/{index}/BLINK/{count}
 ```
 
 ```
-GET /LED/{index}/FREQ/{milliseq}
+GET /LED/{index}/POLL/{milliseq}
 ```
 
 #### STEPPER
@@ -26,6 +26,6 @@ GET /STEPPER/{index}/{steps}
 ```
 
 ```
-GET /STEPPER/{index}/FREQ/{milliseq}
+GET /STEPPER/{index}/POLL/{milliseq}
 ```
 

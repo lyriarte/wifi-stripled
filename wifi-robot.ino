@@ -23,7 +23,7 @@
 
 #define REQ_BUFFER_SIZE 1024
 
-#define MAIN_LOOP_FREQ_MS 10
+#define MAIN_LOOP_POLL_MS 10
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -84,8 +84,8 @@ int reqBufferIndex=0;
 
 typedef struct {
 	int updated_ms;
-	int freq_ms;
-} FREQInfo;
+	int poll_ms;
+} POLLInfo;
 
 
 /*
@@ -93,7 +93,7 @@ typedef struct {
  */
  
 typedef struct {
-	FREQInfo freqInfo;
+	POLLInfo pollInfo;
 	int gpio;
 	int state;
 	int blink;
@@ -116,7 +116,7 @@ LEDInfo ledInfos[] = {
  */
  
 typedef struct {
-	FREQInfo freqInfo;
+	POLLInfo pollInfo;
 	int gpios[4];
 	int steps;
 	int step8Index;
@@ -180,27 +180,27 @@ void setup() {
  * Time management
  */
 
-bool freqDelay(int freq_ms, int from_ms) {
+bool pollDelay(int poll_ms, int from_ms) {
 	int elapsed_ms = millis() - from_ms;
-	if (elapsed_ms < freq_ms) {
-		delay(freq_ms - elapsed_ms);
+	if (elapsed_ms < poll_ms) {
+		delay(poll_ms - elapsed_ms);
 		return true;
 	}
 	return false;
 }
 
-bool updateFreqInfo(FREQInfo * freqInfoP) {
+bool updatePollInfo(POLLInfo * pollInfoP) {
 	int current_ms = millis();
-	if (freqInfoP->freq_ms <= current_ms - freqInfoP->updated_ms) {
-		freqInfoP->updated_ms = current_ms;
+	if (pollInfoP->poll_ms <= current_ms - pollInfoP->updated_ms) {
+		pollInfoP->updated_ms = current_ms;
 		return true;
 	}
 	return false;
 }
 
-bool handleFreqInfoRequest(const char * req, FREQInfo * freqInfoP) {
+bool handlePollInfoRequest(const char * req, POLLInfo * pollInfoP) {
 	String strReq = req;
-	freqInfoP->freq_ms = strReq.toInt();
+	pollInfoP->poll_ms = strReq.toInt();
 	return true;
 }
 
@@ -273,7 +273,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
  */
 
 void updateLEDStatus(int index) {
-	if (!updateFreqInfo(&(ledInfos[index].freqInfo)))
+	if (!updatePollInfo(&(ledInfos[index].pollInfo)))
 		return;
 	if (ledInfos[index].blink)
 		ledInfos[index].state = ledInfos[index].state == LOW ? HIGH : LOW;
@@ -288,8 +288,8 @@ bool handleLEDRequest(const char * req) {
 	if (index < 0 || index >= N_LED)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	if (strReq.startsWith("FREQ/"))
-		return handleFreqInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].freqInfo));
+	if (strReq.startsWith("POLL/"))
+		return handlePollInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].pollInfo));
 	if (strReq.startsWith("BLINK/")) {
 		strReq = strReq.substring(strReq.indexOf("/")+1);
 		ledInfos[index].blink = strReq.toInt();
@@ -305,7 +305,7 @@ bool handleLEDRequest(const char * req) {
 }
 
 void updateSTEPPERStatus(int index) {
-	if (!updateFreqInfo(&(stepperInfos[index].freqInfo)))
+	if (!updatePollInfo(&(stepperInfos[index].pollInfo)))
 		return;
 	if (stepperInfos[index].steps > 0) {
 		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3],
@@ -326,8 +326,8 @@ bool handleSTEPPERRequest(const char * req) {
 	if (index < 0 || index >= N_STEPPER)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	if (strReq.startsWith("FREQ/"))
-		return handleFreqInfoRequest(strReq.substring(5).c_str(), &(stepperInfos[index].freqInfo));
+	if (strReq.startsWith("POLL/"))
+		return handlePollInfoRequest(strReq.substring(5).c_str(), &(stepperInfos[index].pollInfo));
 	stepperInfos[index].steps = strReq.toInt();
 	return true;
 }
@@ -384,7 +384,7 @@ void loop() {
 			updateLEDStatus(deviceIndex);
 		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
 			updateSTEPPERStatus(deviceIndex);
-		freqDelay(MAIN_LOOP_FREQ_MS, start_loop_ms);
+		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
 		wifiStatus = WiFi.status();
 	}
 }
