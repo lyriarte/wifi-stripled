@@ -98,13 +98,15 @@ typedef struct {
 	FREQInfo freqInfo;
 	int gpio;
 	int state;
+	int blink;
 } LEDInfo;
 
 LEDInfo ledInfos[] = {
 	{
 		{0, -1},
 		2,
-		LOW
+		LOW,
+		0
 	}
 };
 
@@ -276,6 +278,10 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 void updateLEDStatus(int index) {
 	if (!updateFreqInfo(&(ledInfos[index].freqInfo)))
 		return;
+	if (ledInfos[index].blink)
+		ledInfos[index].state = ledInfos[index].state == LOW ? HIGH : LOW;
+	if (ledInfos[index].blink > 0)
+		ledInfos[index].blink--;
 	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
 }
 
@@ -287,6 +293,11 @@ bool handleLEDRequest(const char * req) {
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	if (strReq.startsWith("FREQ/"))
 		return handleFreqInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].freqInfo));
+	if (strReq.startsWith("BLINK/")) {
+		strReq = strReq.substring(strReq.indexOf("/")+1);
+		ledInfos[index].blink = strReq.toInt();
+		return true;
+	}
 	if (strReq.endsWith("ON"))
 		ledInfos[index].state = HIGH;
 	else if (strReq.endsWith("OFF"))
