@@ -14,11 +14,18 @@
 #define BPS_HOST 9600
 
 #define serverPORT 80
-#define WIFI_CLIENT_DELAY 500
-#define WIFI_CONNECT_DELAY 3000
+#define WIFI_CLIENT_DELAY_MS 500
+#define WIFI_CLIENT_CONNECTED_DELAY_MS 100
+#define WIFI_SERVER_DELAY_MS 200
+#define WIFI_CONNECT_DELAY_MS 3000
+#define WIFI_CONNECT_RETRY_DELAY_MS 1000
 #define WIFI_CONNECT_RETRY 5
 
 #define REQ_BUFFER_SIZE 1024
+
+#define STEPPER_DELAY_MS 5
+
+#define MAIN_LOOP_DELAY_MS 10
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -125,7 +132,6 @@ byte steps8[] = {
   HIGH,  LOW,  LOW, HIGH,
 };
 
-#define STEPPERMS 5
 void step8(int pin1, int pin2, int pin3, int pin4) {
 	int i=0;
 	while (i<32) {
@@ -133,7 +139,7 @@ void step8(int pin1, int pin2, int pin3, int pin4) {
 		digitalWrite(pin2, steps8[i++]);
 		digitalWrite(pin3, steps8[i++]);
 		digitalWrite(pin4, steps8[i++]);
-		delay(STEPPERMS);
+		delay(STEPPER_DELAY_MS);
 	}
 } 
 
@@ -203,7 +209,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	while (wifiStatus != WL_CONNECTED && retry > 0) {
 		retry--;
 		Serial.print(".");
-		delay(WIFI_CONNECT_DELAY);
+		delay(WIFI_CONNECT_DELAY_MS);
 		wifiStatus = WiFi.status();
 	}
 	Serial.println();
@@ -291,20 +297,20 @@ bool handleHttpRequest(const char * req) {
 void loop() {
 	int deviceIndex;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
-		delay(1000);
+		delay(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
-	delay(200);
+	delay(WIFI_SERVER_DELAY_MS);
 	while (wifiStatus == WL_CONNECTED) {
 		wifiClient = wifiServer.available();
 		if (wifiClient && wifiClient.connected()) {
-			delay(100);
+			delay(WIFI_CLIENT_CONNECTED_DELAY_MS);
 			reqBufferIndex = 0;
 			while (wifiClient.available() && reqBufferIndex < REQ_BUFFER_SIZE-1) {
 				reqBuffer[reqBufferIndex++] = wifiClient.read();
 			}
 			reqBuffer[reqBufferIndex] = 0;
 			handleHttpRequest(reqBuffer);
-			delay(WIFI_CLIENT_DELAY);
+			delay(WIFI_CLIENT_DELAY_MS);
 			wifiClient.stop();
 		}
 		for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
@@ -312,6 +318,6 @@ void loop() {
 		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
 			updateSTEPPERStatus(deviceIndex);
 		wifiStatus = WiFi.status();
-		delay(10);
+		delay(MAIN_LOOP_DELAY_MS);
 	}
 }
