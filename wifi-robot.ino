@@ -25,7 +25,7 @@
 
 #define STEPPER_DELAY_MS 5
 
-#define MAIN_LOOP_DELAY_MS 10
+#define MAIN_LOOP_FREQ_MS 10
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -295,12 +295,13 @@ bool handleHttpRequest(const char * req) {
  */
 
 void loop() {
-	int deviceIndex;
+	int deviceIndex, start_loop_ms, spent_loop_ms;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delay(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
 	delay(WIFI_SERVER_DELAY_MS);
 	while (wifiStatus == WL_CONNECTED) {
+		start_loop_ms = millis();
 		wifiClient = wifiServer.available();
 		if (wifiClient && wifiClient.connected()) {
 			delay(WIFI_CLIENT_CONNECTED_DELAY_MS);
@@ -317,7 +318,9 @@ void loop() {
 			updateLEDStatus(deviceIndex);
 		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
 			updateSTEPPERStatus(deviceIndex);
+		spent_loop_ms = millis() - start_loop_ms;
+		if (spent_loop_ms < MAIN_LOOP_FREQ_MS)
+			delay(MAIN_LOOP_FREQ_MS - spent_loop_ms);
 		wifiStatus = WiFi.status();
-		delay(MAIN_LOOP_DELAY_MS);
 	}
 }
