@@ -23,7 +23,7 @@
 
 #define REQ_BUFFER_SIZE 1024
 
-#define STEPPER_DELAY_MS 5
+#define STEPPER_DELAY_MS 1
 
 #define MAIN_LOOP_FREQ_MS 10
 
