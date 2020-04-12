@@ -23,7 +23,7 @@
 
 #define REQ_BUFFER_SIZE 1024
 
-#define MAIN_LOOP_POLL_MS 10
+#define MAIN_LOOP_POLL_MS 2
 
 /* **** **** **** **** **** ****
  * Global variables
