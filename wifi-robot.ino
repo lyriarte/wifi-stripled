@@ -81,16 +81,28 @@ int reqBufferIndex=0;
  * **** **** **** **** **** ****/
 
 /*
+ * Time management
+ */ 
+
+typedef struct {
+	int updated_ms;
+	int freq_ms;
+} FREQInfo;
+
+
+/*
  * LED
  */
  
 typedef struct {
-  int gpio;
-  int state;
+	FREQInfo freqInfo;
+	int gpio;
+	int state;
 } LEDInfo;
 
 LEDInfo ledInfos[] = {
 	{
+		{0, -1},
 		2,
 		LOW
 	}
@@ -104,16 +116,19 @@ LEDInfo ledInfos[] = {
  */
  
 typedef struct {
-  int gpios[4];
-  int steps;
+	FREQInfo freqInfo;
+	int gpios[4];
+	int steps;
 } STEPPERInfo;
 
 STEPPERInfo stepperInfos[] = {
 	{// D0 D1 D2 D3
+		{0, -1},
 		{16,5,4,0},
 		0
 	},
 	{// D5 D6 D7 D8
+		{0, -1},
 		{14,12,13,15},
 		0
 	}
@@ -175,6 +190,14 @@ bool freqDelay(int freq_ms, int from_ms) {
 	return false;
 }
 
+bool updateFreqInfo(FREQInfo * freqInfoP) {
+	int current_ms = millis();
+	if (freqInfoP->freq_ms <= current_ms - freqInfoP->updated_ms) {
+		freqInfoP->updated_ms = current_ms;
+		return true;
+	}
+	return false;
+}
 
 /*
  * WiFi
@@ -245,6 +268,8 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
  */
 
 void updateLEDStatus(int index) {
+	if (!updateFreqInfo(&(ledInfos[index].freqInfo)))
+		return;
 	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
 }
 
@@ -263,6 +288,8 @@ bool handleLEDRequest(const char * req) {
 }
 
 void updateSTEPPERStatus(int index) {
+	if (!updateFreqInfo(&(stepperInfos[index].freqInfo)))
+		return;
 	if (stepperInfos[index].steps > 0) {
 		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3]);
 		stepperInfos[index].steps--;
