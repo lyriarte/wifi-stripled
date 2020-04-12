@@ -23,8 +23,6 @@
 
 #define REQ_BUFFER_SIZE 1024
 
-#define STEPPER_DELAY_MS 1
-
 #define MAIN_LOOP_FREQ_MS 10
 
 /* **** **** **** **** **** ****
@@ -121,17 +119,20 @@ typedef struct {
 	FREQInfo freqInfo;
 	int gpios[4];
 	int steps;
+	int step8Index;
 } STEPPERInfo;
 
 STEPPERInfo stepperInfos[] = {
 	{// D0 D1 D2 D3
-		{0, -1},
+		{0, 1},
 		{16,5,4,0},
+		0,
 		0
 	},
 	{// D5 D6 D7 D8
-		{0, -1},
+		{0, 1},
 		{14,12,13,15},
+		0,
 		0
 	}
 };
@@ -149,15 +150,11 @@ byte steps8[] = {
   HIGH,  LOW,  LOW, HIGH,
 };
 
-void step8(int pin1, int pin2, int pin3, int pin4) {
-	int i=0;
-	while (i<32) {
-		digitalWrite(pin1, steps8[i++]);
-		digitalWrite(pin2, steps8[i++]);
-		digitalWrite(pin3, steps8[i++]);
-		digitalWrite(pin4, steps8[i++]);
-		delay(STEPPER_DELAY_MS);
-	}
+void step8(int pin1, int pin2, int pin3, int pin4, int i) {
+	digitalWrite(pin1, steps8[i++]);
+	digitalWrite(pin2, steps8[i++]);
+	digitalWrite(pin3, steps8[i++]);
+	digitalWrite(pin4, steps8[i++]);
 } 
 
 
@@ -311,13 +308,16 @@ void updateSTEPPERStatus(int index) {
 	if (!updateFreqInfo(&(stepperInfos[index].freqInfo)))
 		return;
 	if (stepperInfos[index].steps > 0) {
-		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3]);
+		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3],
+			stepperInfos[index].step8Index);
 		stepperInfos[index].steps--;
 	}
 	else if (stepperInfos[index].steps < 0) {
-		step8(stepperInfos[index].gpios[3],stepperInfos[index].gpios[2],stepperInfos[index].gpios[1],stepperInfos[index].gpios[0]);
+		step8(stepperInfos[index].gpios[3],stepperInfos[index].gpios[2],stepperInfos[index].gpios[1],stepperInfos[index].gpios[0],
+			stepperInfos[index].step8Index);
 		stepperInfos[index].steps++;
 	}
+	stepperInfos[index].step8Index = (stepperInfos[index].step8Index + 4) % 32;
 }
 
 bool handleSTEPPERRequest(const char * req) {
