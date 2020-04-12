@@ -199,6 +199,12 @@ bool updateFreqInfo(FREQInfo * freqInfoP) {
 	return false;
 }
 
+bool handleFreqInfoRequest(const char * req, FREQInfo * freqInfoP) {
+	String strReq = req;
+	freqInfoP->freq_ms = strReq.toInt();
+	return true;
+}
+
 /*
  * WiFi
  */
@@ -278,9 +284,12 @@ bool handleLEDRequest(const char * req) {
 	int index = strReq.toInt();
 	if (index < 0 || index >= N_LED)
 		return false;
-	if (strReq.endsWith("/ON"))
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	if (strReq.startsWith("FREQ/"))
+		return handleFreqInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].freqInfo));
+	if (strReq.endsWith("ON"))
 		ledInfos[index].state = HIGH;
-	else if (strReq.endsWith("/OFF"))
+	else if (strReq.endsWith("OFF"))
 		ledInfos[index].state = LOW;
 	else
 		return false;
@@ -305,7 +314,10 @@ bool handleSTEPPERRequest(const char * req) {
 	int index = strReq.toInt();
 	if (index < 0 || index >= N_STEPPER)
 		return false;
-	stepperInfos[index].steps = strReq.substring(strReq.indexOf("/")+1).toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	if (strReq.startsWith("FREQ/"))
+		return handleFreqInfoRequest(strReq.substring(5).c_str(), &(stepperInfos[index].freqInfo));
+	stepperInfos[index].steps = strReq.toInt();
 	return true;
 }
 
