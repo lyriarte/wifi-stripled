@@ -161,6 +161,21 @@ void setup() {
 	Serial.println(wifiMacStr);
 }
 
+
+/*
+ * Time management
+ */
+
+bool freqDelay(int freq_ms, int from_ms) {
+	int elapsed_ms = millis() - from_ms;
+	if (elapsed_ms < freq_ms) {
+		delay(freq_ms - elapsed_ms);
+		return true;
+	}
+	return false;
+}
+
+
 /*
  * WiFi
  */
@@ -290,12 +305,13 @@ bool handleHttpRequest(const char * req) {
 	return result;
 }
 
+
 /* 
  * Main loop
  */
 
 void loop() {
-	int deviceIndex, start_loop_ms, spent_loop_ms;
+	int deviceIndex, start_loop_ms;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delay(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
@@ -318,9 +334,7 @@ void loop() {
 			updateLEDStatus(deviceIndex);
 		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
 			updateSTEPPERStatus(deviceIndex);
-		spent_loop_ms = millis() - start_loop_ms;
-		if (spent_loop_ms < MAIN_LOOP_FREQ_MS)
-			delay(MAIN_LOOP_FREQ_MS - spent_loop_ms);
+		freqDelay(MAIN_LOOP_FREQ_MS, start_loop_ms);
 		wifiStatus = WiFi.status();
 	}
 }
