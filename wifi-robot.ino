@@ -5,6 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <Servo.h> 
 
 
 /* **** **** **** **** **** ****
@@ -112,6 +113,27 @@ LEDInfo ledInfos[] = {
 
 
 /*
+ * SERVO
+ */
+ 
+typedef struct {
+	Servo * servoP;
+	int gpio;
+	int angle;
+} SERVOInfo;
+
+SERVOInfo servoInfos[] = {
+	{
+		new Servo(),
+		10,
+		90
+	}
+};
+
+#define N_SERVO (sizeof(servoInfos) / sizeof(SERVOInfo))
+
+
+/*
  * STEPPER
  */
  
@@ -158,6 +180,7 @@ void step8(int pin1, int pin2, int pin3, int pin4, int i) {
 } 
 
 
+
 /* **** **** **** **** **** ****
  * Functions
  * **** **** **** **** **** ****/
@@ -166,6 +189,11 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
+	for (i=0; i < N_SERVO; i++) {
+		pinMode(servoInfos[i].gpio, OUTPUT);
+		servoInfos[i].servoP->attach(servoInfos[i].gpio);
+		servoInfos[i].servoP->write(servoInfos[i].angle);
+	}
 	for (i=0; i < N_STEPPER; i++)
 		for (j=0; j < 4; j++)
 			pinMode(stepperInfos[i].gpios[j], OUTPUT);
@@ -304,6 +332,25 @@ bool handleLEDRequest(const char * req) {
 	return true;
 }
 
+void updateSERVOStatus(int index) {
+	if (servoInfos[index].angle < 0 || servoInfos[index].angle > 180)
+		return;
+	servoInfos[index].servoP->write(servoInfos[index].angle);
+	servoInfos[index].angle = -1;
+}
+
+bool handleSERVORequest(const char * req) {
+	String strReq = req;
+	int index = strReq.toInt();
+	if (index < 0 || index >= N_SERVO)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	servoInfos[index].angle = strReq.toInt();
+	if (servoInfos[index].angle < 0 || servoInfos[index].angle > 180)
+		return false;
+	return true;
+}
+
 void updateSTEPPERStatus(int index) {
 	if (!updatePollInfo(&(stepperInfos[index].pollInfo)))
 		return;
@@ -332,6 +379,7 @@ bool handleSTEPPERRequest(const char * req) {
 	return true;
 }
 
+
 /*
  * HTTP request main dispatch
  */
@@ -346,6 +394,8 @@ bool handleHttpRequest(const char * req) {
 	bool result = false;
 	if (strReq.startsWith("LED/"))
 		result = handleLEDRequest(strReq.substring(4).c_str());
+	if (strReq.startsWith("SERVO/"))
+		result = handleSERVORequest(strReq.substring(6).c_str());
 	else if (strReq.startsWith("STEPPER/"))
 		result = handleSTEPPERRequest(strReq.substring(8).c_str());
 	if (result)
@@ -382,6 +432,8 @@ void loop() {
 		}
 		for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 			updateLEDStatus(deviceIndex);
+		for (deviceIndex=0; deviceIndex<N_SERVO; deviceIndex++)
+			updateSERVOStatus(deviceIndex);
 		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
 			updateSTEPPERStatus(deviceIndex);
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
