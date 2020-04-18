@@ -378,6 +378,24 @@ bool handleSTEPPERRequest(const char * req) {
  * HTTP request main dispatch
  */
 
+void replyHttpSuccess(String strResult) {
+	wifiClient.println("HTTP/1.1 200 OK");
+	wifiClient.println("Content-Type: text/plain");
+	wifiClient.println("Access-Control-Allow-Origin: *");
+	wifiClient.println("Connection: close");
+	wifiClient.println();
+	wifiClient.print(strResult);
+	wifiClient.println();
+}
+
+void replyHttpError(String strError) {
+	wifiClient.println("HTTP/1.1 400 Bad Request");
+	wifiClient.println("Access-Control-Allow-Origin: *");
+	wifiClient.println();
+	wifiClient.print(strError);
+	wifiClient.println();
+}
+
 bool handleHttpRequest(const char * req) {
 	if (req == NULL)
 		return false;
@@ -393,9 +411,9 @@ bool handleHttpRequest(const char * req) {
 	else if (strReq.startsWith("STEPPER/"))
 		result = handleSTEPPERRequest(strReq.substring(8).c_str());
 	if (result)
-		wifiClient.println(strReq);
+		replyHttpSuccess(strReq);
 	else
-		wifiClient.println("ERROR");
+		replyHttpError("ERROR");
 	return result;
 }
 
