@@ -19,6 +19,12 @@ GET /LED/{index}/BLINK/{count}
 GET /LED/{index}/POLL/{millis}
 ```
 
+#### SERVO
+
+```
+GET /SERVO/{index}/{angle}
+```
+
 #### STEPPER
 
 ```

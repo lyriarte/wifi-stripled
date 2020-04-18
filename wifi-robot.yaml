@@ -1,7 +1,7 @@
 swagger: "2.0"
 info:
   description: "WiFi Robot API"
-  version: "0.1.0"
+  version: "0.2.0"
   title: "WiFi Robot"
   contact:
     email: "contact@thingagora.org"
@@ -97,6 +97,31 @@ paths:
         type: "integer"
         format: "int32"
         default: 200
+      responses:
+        200:
+          description: "success"
+        400:
+          description: "error"
+  /SERVO/{index}/{angle}:
+    get:
+      tags:
+      - "SERVO"
+      summary: "Make SERVO take a given angle"
+      parameters:
+      - name: "index"
+        in: "path"
+        description: "Index of SERVO to address"
+        required: true
+        type: "integer"
+        format: "int32"
+        default: 0
+      - name: "angle"
+        in: "path"
+        description: "Angle in degrees"
+        required: true
+        type: "integer"
+        format: "int32"
+        default: 90
       responses:
         200:
           description: "success"
