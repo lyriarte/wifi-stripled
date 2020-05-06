@@ -98,6 +98,8 @@ typedef struct {
 	int gpio;
 	int state;
 	int blink;
+	int blink_on_ms;
+	int blink_off_ms;
 } LEDInfo;
 
 LEDInfo ledInfos[] = {
@@ -297,8 +299,16 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 void updateLEDStatus(int index) {
 	if (!updatePollInfo(&(ledInfos[index].pollInfo)))
 		return;
-	if (ledInfos[index].blink)
-		ledInfos[index].state = ledInfos[index].state == LOW ? HIGH : LOW;
+	if (ledInfos[index].blink) {
+		if (ledInfos[index].state == LOW) {
+			ledInfos[index].state = HIGH;
+			ledInfos[index].pollInfo.poll_ms = ledInfos[index].blink_on_ms;
+		}
+		else {
+			ledInfos[index].state = LOW;
+			ledInfos[index].pollInfo.poll_ms = ledInfos[index].blink_off_ms;
+		}
+	}
 	if (ledInfos[index].blink > 0)
 		ledInfos[index].blink--;
 	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
@@ -310,11 +320,24 @@ bool handleLEDRequest(const char * req) {
 	if (index < 0 || index >= N_LED)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	if (strReq.startsWith("POLL/"))
-		return handlePollInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].pollInfo));
+	if (strReq.startsWith("POLL/")) {
+		handlePollInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].pollInfo));
+		ledInfos[index].blink_on_ms = ledInfos[index].blink_off_ms = ledInfos[index].pollInfo.poll_ms;
+		return true;
+	}
 	if (strReq.startsWith("BLINK/")) {
 		strReq = strReq.substring(strReq.indexOf("/")+1);
 		ledInfos[index].blink = strReq.toInt();
+		return true;
+	}
+	if (strReq.startsWith("BLINKON/")) {
+		strReq = strReq.substring(strReq.indexOf("/")+1);
+		ledInfos[index].blink_on_ms = strReq.toInt();
+		return true;
+	}
+	if (strReq.startsWith("BLINKOFF/")) {
+		strReq = strReq.substring(strReq.indexOf("/")+1);
+		ledInfos[index].blink_off_ms = strReq.toInt();
 		return true;
 	}
 	if (strReq.endsWith("ON"))
