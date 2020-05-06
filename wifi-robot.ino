@@ -5,7 +5,6 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
-#include <Servo.h> 
 
 
 /* **** **** **** **** **** ****
@@ -103,78 +102,16 @@ typedef struct {
 } LEDInfo;
 
 LEDInfo ledInfos[] = {
+	{
+		{0, 200},
+		2,	// D4 led
+		LOW,
+		-1,
+		50,250
+	}
 };
 
 #define N_LED (sizeof(ledInfos) / sizeof(LEDInfo))
-
-
-/*
- * SERVO
- */
- 
-typedef struct {
-	Servo * servoP;
-	int gpio;
-	int angle;
-} SERVOInfo;
-
-SERVOInfo servoInfos[] = {
-	{
-		new Servo(),
-		2,
-		90
-	}
-};
-
-#define N_SERVO (sizeof(servoInfos) / sizeof(SERVOInfo))
-
-
-/*
- * STEPPER
- */
- 
-typedef struct {
-	POLLInfo pollInfo;
-	int gpios[4];
-	int steps;
-	int step8Index;
-} STEPPERInfo;
-
-STEPPERInfo stepperInfos[] = {
-	{// D0 D1 D2 D3
-		{0, 1},
-		{16,5,4,0},
-		0,
-		0
-	},
-	{// D5 D6 D7 D8
-		{0, 1},
-		{14,12,13,15},
-		0,
-		0
-	}
-};
-
-#define N_STEPPER (sizeof(stepperInfos) / sizeof(STEPPERInfo))
-
-byte steps8[] = {
-  HIGH,  LOW,  LOW,  LOW,
-  HIGH, HIGH,  LOW,  LOW,
-   LOW, HIGH,  LOW,  LOW,
-   LOW, HIGH, HIGH,  LOW,
-   LOW,  LOW, HIGH,  LOW, 
-   LOW,  LOW, HIGH, HIGH,
-   LOW,  LOW,  LOW, HIGH,
-  HIGH,  LOW,  LOW, HIGH,
-};
-
-void step8(int pin1, int pin2, int pin3, int pin4, int i) {
-	digitalWrite(pin1, steps8[i++]);
-	digitalWrite(pin2, steps8[i++]);
-	digitalWrite(pin3, steps8[i++]);
-	digitalWrite(pin4, steps8[i++]);
-} 
-
 
 
 /* **** **** **** **** **** ****
@@ -185,14 +122,6 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	for (i=0; i < N_SERVO; i++) {
-		pinMode(servoInfos[i].gpio, OUTPUT);
-		servoInfos[i].servoP->attach(servoInfos[i].gpio);
-		servoInfos[i].servoP->write(servoInfos[i].angle);
-	}
-	for (i=0; i < N_STEPPER; i++)
-		for (j=0; j < 4; j++)
-			pinMode(stepperInfos[i].gpios[j], OUTPUT);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
 	Serial.print("WiFi.macAddress: ");
@@ -353,53 +282,6 @@ bool handleLEDRequest(const char * req) {
 	return true;
 }
 
-void updateSERVOStatus(int index) {
-	if (servoInfos[index].angle < 0 || servoInfos[index].angle > 180)
-		return;
-	servoInfos[index].servoP->write(servoInfos[index].angle);
-	servoInfos[index].angle = -1;
-}
-
-bool handleSERVORequest(const char * req) {
-	String strReq = req;
-	int index = strReq.toInt();
-	if (index < 0 || index >= N_SERVO)
-		return false;
-	strReq = strReq.substring(strReq.indexOf("/")+1);
-	servoInfos[index].angle = strReq.toInt();
-	if (servoInfos[index].angle < 0 || servoInfos[index].angle > 180)
-		return false;
-	return true;
-}
-
-void updateSTEPPERStatus(int index) {
-	if (!updatePollInfo(&(stepperInfos[index].pollInfo)))
-		return;
-	if (stepperInfos[index].steps > 0) {
-		step8(stepperInfos[index].gpios[0],stepperInfos[index].gpios[1],stepperInfos[index].gpios[2],stepperInfos[index].gpios[3],
-			stepperInfos[index].step8Index);
-		stepperInfos[index].steps--;
-	}
-	else if (stepperInfos[index].steps < 0) {
-		step8(stepperInfos[index].gpios[3],stepperInfos[index].gpios[2],stepperInfos[index].gpios[1],stepperInfos[index].gpios[0],
-			stepperInfos[index].step8Index);
-		stepperInfos[index].steps++;
-	}
-	stepperInfos[index].step8Index = (stepperInfos[index].step8Index + 4) % 32;
-}
-
-bool handleSTEPPERRequest(const char * req) {
-	String strReq = req;
-	int index = strReq.toInt();
-	if (index < 0 || index >= N_STEPPER)
-		return false;
-	strReq = strReq.substring(strReq.indexOf("/")+1);
-	if (strReq.startsWith("POLL/"))
-		return handlePollInfoRequest(strReq.substring(5).c_str(), &(stepperInfos[index].pollInfo));
-	stepperInfos[index].steps = strReq.toInt();
-	return true;
-}
-
 
 /*
  * HTTP request main dispatch
@@ -433,10 +315,6 @@ bool handleHttpRequest(const char * req) {
 	bool result = false;
 	if (strReq.startsWith("LED/"))
 		result = handleLEDRequest(strReq.substring(4).c_str());
-	if (strReq.startsWith("SERVO/"))
-		result = handleSERVORequest(strReq.substring(6).c_str());
-	else if (strReq.startsWith("STEPPER/"))
-		result = handleSTEPPERRequest(strReq.substring(8).c_str());
 	if (result)
 		replyHttpSuccess(strReq);
 	else
@@ -471,10 +349,6 @@ void loop() {
 		}
 		for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 			updateLEDStatus(deviceIndex);
-		for (deviceIndex=0; deviceIndex<N_SERVO; deviceIndex++)
-			updateSERVOStatus(deviceIndex);
-		for (deviceIndex=0; deviceIndex<N_STEPPER; deviceIndex++)
-			updateSTEPPERStatus(deviceIndex);
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
 		wifiStatus = WiFi.status();
 	}
