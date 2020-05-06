@@ -297,9 +297,9 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
  */
 
 void updateLEDStatus(int index) {
-	if (!updatePollInfo(&(ledInfos[index].pollInfo)))
-		return;
 	if (ledInfos[index].blink) {
+		if (!updatePollInfo(&(ledInfos[index].pollInfo)))
+			return;
 		if (ledInfos[index].state == LOW) {
 			ledInfos[index].state = HIGH;
 			ledInfos[index].pollInfo.poll_ms = ledInfos[index].blink_on_ms;
@@ -340,10 +340,14 @@ bool handleLEDRequest(const char * req) {
 		ledInfos[index].blink_off_ms = strReq.toInt();
 		return true;
 	}
-	if (strReq.endsWith("ON"))
+	if (strReq.endsWith("ON")) {
+		ledInfos[index].blink = 0;
 		ledInfos[index].state = HIGH;
-	else if (strReq.endsWith("OFF"))
+	}
+	else if (strReq.endsWith("OFF")) {
+		ledInfos[index].blink = 0;
 		ledInfos[index].state = LOW;
+	}
 	else
 		return false;
 	return true;
