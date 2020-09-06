@@ -23,7 +23,8 @@
 
 #define REQ_BUFFER_SIZE 1024
 
-#define MAIN_LOOP_POLL_MS 2
+#define MAIN_LOOP_POLL_MS 10
+#define MINIMUM_UPDATE_MS 2
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -327,28 +328,50 @@ bool handleHttpRequest(const char * req) {
  * Main loop
  */
 
+
+void updateStatus() {
+	int deviceIndex;
+	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
+		updateLEDStatus(deviceIndex);
+}
+
+void delayWithUpdateStatus(int delay_ms) {
+	int start_ms = millis();
+	while (millis() - start_ms < delay_ms) {
+		updateStatus();
+		delay(MINIMUM_UPDATE_MS);
+	}
+}
+
+void delayedWifiClientStop(int start_ms) {
+	while (wifiClient && wifiClient.connected() && millis() < start_ms + WIFI_CLIENT_DELAY_MS) {
+		updateStatus();
+		delay(MINIMUM_UPDATE_MS);
+	}
+	if (wifiClient)
+		wifiClient.stop();
+}
+
 void loop() {
-	int deviceIndex, start_loop_ms;
+	int start_loop_ms;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
-		delay(WIFI_CONNECT_RETRY_DELAY_MS);
+		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
-	delay(WIFI_SERVER_DELAY_MS);
+	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
 	while (wifiStatus == WL_CONNECTED) {
 		start_loop_ms = millis();
 		wifiClient = wifiServer.available();
 		if (wifiClient && wifiClient.connected()) {
-			delay(WIFI_CLIENT_CONNECTED_DELAY_MS);
+			delayWithUpdateStatus(WIFI_CLIENT_CONNECTED_DELAY_MS);
 			reqBufferIndex = 0;
 			while (wifiClient.available() && reqBufferIndex < REQ_BUFFER_SIZE-1) {
 				reqBuffer[reqBufferIndex++] = wifiClient.read();
 			}
 			reqBuffer[reqBufferIndex] = 0;
 			handleHttpRequest(reqBuffer);
-			delay(WIFI_CLIENT_DELAY_MS);
-			wifiClient.stop();
+			delayedWifiClientStop(millis());
 		}
-		for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
-			updateLEDStatus(deviceIndex);
+		updateStatus();
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
 		wifiStatus = WiFi.status();
 	}
