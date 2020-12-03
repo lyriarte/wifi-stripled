@@ -5,6 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <FastLED.h>
 
 
 /* **** **** **** **** **** ****
@@ -25,6 +26,10 @@
 
 #define MAIN_LOOP_POLL_MS 10
 #define MINIMUM_UPDATE_MS 2
+
+#define STRIPLED_GPIO	5
+#define N_STRIPLED    426
+
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -90,6 +95,12 @@ typedef struct {
 
 
 /*
+ * STRIPLED
+ */
+ 
+CRGBArray<N_STRIPLED> leds;
+
+/*
  * LED
  */
  
@@ -123,6 +134,7 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
+	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO>(leds, N_STRIPLED);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
 	Serial.print("WiFi.macAddress: ");
@@ -137,7 +149,7 @@ void setup() {
 bool pollDelay(int poll_ms, int from_ms) {
 	int elapsed_ms = millis() - from_ms;
 	if (elapsed_ms < poll_ms) {
-		delay(poll_ms - elapsed_ms);
+		FastLED.delay(poll_ms - elapsed_ms);
 		return true;
 	}
 	return false;
@@ -206,7 +218,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	while (wifiStatus != WL_CONNECTED && retry > 0) {
 		retry--;
 		Serial.print(".");
-		delay(WIFI_CONNECT_DELAY_MS);
+		FastLED.delay(WIFI_CONNECT_DELAY_MS);
 		wifiStatus = WiFi.status();
 	}
 	Serial.println();
@@ -283,6 +295,22 @@ bool handleLEDRequest(const char * req) {
 	return true;
 }
 
+bool handleSTRIPLEDRequest(const char * req) {
+	String strReq = req;
+	int index = strReq.toInt();
+	if (index < 0 || index >= N_STRIPLED)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	if (strReq.startsWith("RGB/")) {
+		int rgb = (int) strtol(strReq.substring(4).c_str(), NULL, 16);
+		leds[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
+		return true;
+	}
+	else
+		return false;
+	return true;
+}
+
 
 /*
  * HTTP request main dispatch
@@ -316,6 +344,8 @@ bool handleHttpRequest(const char * req) {
 	bool result = false;
 	if (strReq.startsWith("LED/"))
 		result = handleLEDRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("STRIPLED/"))
+		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	if (result)
 		replyHttpSuccess(strReq);
 	else
@@ -339,14 +369,14 @@ void delayWithUpdateStatus(int delay_ms) {
 	int start_ms = millis();
 	while (millis() - start_ms < delay_ms) {
 		updateStatus();
-		delay(MINIMUM_UPDATE_MS);
+		FastLED.delay(MINIMUM_UPDATE_MS);
 	}
 }
 
 void delayedWifiClientStop(int start_ms) {
 	while (wifiClient && wifiClient.connected() && millis() < start_ms + WIFI_CLIENT_DELAY_MS) {
 		updateStatus();
-		delay(MINIMUM_UPDATE_MS);
+		FastLED.delay(MINIMUM_UPDATE_MS);
 	}
 	if (wifiClient)
 		wifiClient.stop();
