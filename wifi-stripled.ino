@@ -311,6 +311,29 @@ bool handleSTRIPLEDRequest(const char * req) {
 	return true;
 }
 
+bool handleGRADIENTRequest(const char * req) {
+	String strReq = req;
+	int src = strReq.toInt();
+	if (src < 0 || src >= N_STRIPLED)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int srcrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	int srcr = srcrgb >> 16, srcg = srcrgb >> 8 & 0xFF, srcb = srcrgb & 0xFF;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int dst = strReq.toInt();
+	if (dst <= src || dst >= N_STRIPLED)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int dstrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
+	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
+	for (int i=src; i<=dst; i++) {
+		leds[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
+	}
+  return true;
+}
+
+
 
 /*
  * HTTP request main dispatch
@@ -346,6 +369,8 @@ bool handleHttpRequest(const char * req) {
 		result = handleLEDRequest(strReq.substring(4).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("GRADIENT/"))
+		result = handleGRADIENTRequest(strReq.substring(9).c_str());
 	if (result)
 		replyHttpSuccess(strReq);
 	else
