@@ -115,11 +115,11 @@ typedef struct {
 
 LEDInfo ledInfos[] = {
 	{
-		{0, 200},
+		{0, 0},
 		2,	// D4 led
 		LOW,
 		-1,
-		50,250
+		450,50
 	}
 };
 
