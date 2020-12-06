@@ -8,6 +8,7 @@
 #include <FS.h>
 #include <FastLED.h>
 
+#include "qdbmp.h"
 
 /* **** **** **** **** **** ****
  * Constants
@@ -415,7 +416,13 @@ bool openBitmapFile(String path) {
     return false;
   }
   File file = SPIFFS.open(path, "r");
+  BMP* bmp = NULL;
+  if (bmp == NULL) {
+    Serial.println("Bitmap file open error");
+    return false;
+  }
   file.close();
+  free( bmp );
   return true;
 }
 
