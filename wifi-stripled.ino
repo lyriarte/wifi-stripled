@@ -5,6 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <FS.h>
 #include <FastLED.h>
 
 
@@ -139,6 +140,7 @@ void setup() {
 	wifiMacInit();
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
+  SPIFFS.begin(); 
 }
 
 
@@ -371,12 +373,23 @@ void delayedWifiClientStop(int start_ms) {
 		wifiClient.stop();
 }
 
+bool openBitmapFile(String path) {
+  if (!SPIFFS.exists(path)) {
+    Serial.println("File not found");
+    return false;
+  }
+  File file = SPIFFS.open(path, "r");
+  file.close();
+  return true;
+}
+
 void loop() {
 	int start_loop_ms;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
+  openBitmapFile("/test.bmp");
 	while (wifiStatus == WL_CONNECTED) {
 		start_loop_ms = millis();
 		wifiClient = wifiServer.available();
