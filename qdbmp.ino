@@ -1,6 +1,7 @@
 #include "qdbmp.h"
 #include <stdlib.h>
 #include <string.h>
+#include <FS.h>
 
 
 /* Bitmap header */
@@ -59,14 +60,14 @@ static const char* BMP_ERROR_STRING[] =
 
 
 /*********************************** Forward declarations **********************************/
-int   ReadHeader  ( BMP* bmp, FILE* f );
-int   WriteHeader ( BMP* bmp, FILE* f );
+int   ReadHeader  ( BMP* bmp, File* f );
+int   WriteHeader ( BMP* bmp, File* f );
 
-int   ReadUINT  ( UINT* x, FILE* f );
-int   ReadUSHORT  ( USHORT *x, FILE* f );
+int   ReadUINT  ( UINT* x, File* f );
+int   ReadUSHORT  ( USHORT *x, File* f );
 
-int   WriteUINT ( UINT x, FILE* f );
-int   WriteUSHORT ( USHORT x, FILE* f );
+int   WriteUINT ( UINT x, File* f );
+int   WriteUSHORT ( USHORT x, File* f );
 
 
 
@@ -202,7 +203,7 @@ void BMP_Free( BMP* bmp )
 BMP* BMP_ReadFile( const char* filename )
 {
   BMP*  bmp;
-  FILE* f;
+  File f;
 
   if ( filename == NULL )
   {
@@ -221,7 +222,7 @@ BMP* BMP_ReadFile( const char* filename )
 
 
   /* Open file */
-  f = fopen( filename, "rb" );
+  f = SPIFFS.open( filename, "r" );
   if ( f == NULL )
   {
     BMP_LAST_ERROR_CODE = BMP_FILE_NOT_FOUND;
@@ -231,10 +232,10 @@ BMP* BMP_ReadFile( const char* filename )
 
 
   /* Read header */
-  if ( ReadHeader( bmp, f ) != BMP_OK || bmp->Header.Magic != 0x4D42 )
+  if ( ReadHeader( bmp, &f ) != BMP_OK || bmp->Header.Magic != 0x4D42 )
   {
     BMP_LAST_ERROR_CODE = BMP_FILE_INVALID;
-    fclose( f );
+    f.close();
     free( bmp );
     return NULL;
   }
@@ -245,7 +246,7 @@ BMP* BMP_ReadFile( const char* filename )
     || bmp->Header.CompressionType != 0 || bmp->Header.HeaderSize != 40 )
   {
     BMP_LAST_ERROR_CODE = BMP_FILE_NOT_SUPPORTED;
-    fclose( f );
+    f.close();
     free( bmp );
     return NULL;
   }
@@ -258,15 +259,15 @@ BMP* BMP_ReadFile( const char* filename )
     if ( bmp->Palette == NULL )
     {
       BMP_LAST_ERROR_CODE = BMP_OUT_OF_MEMORY;
-      fclose( f );
+      f.close();
       free( bmp );
       return NULL;
     }
 
-    if ( fread( bmp->Palette, sizeof( UCHAR ), BMP_PALETTE_SIZE, f ) != BMP_PALETTE_SIZE )
+    if ( f.read( bmp->Palette, BMP_PALETTE_SIZE) != BMP_PALETTE_SIZE )
     {
       BMP_LAST_ERROR_CODE = BMP_FILE_INVALID;
-      fclose( f );
+      f.close();
       free( bmp->Palette );
       free( bmp );
       return NULL;
@@ -283,7 +284,7 @@ BMP* BMP_ReadFile( const char* filename )
   if ( bmp->Data == NULL )
   {
     BMP_LAST_ERROR_CODE = BMP_OUT_OF_MEMORY;
-    fclose( f );
+    f.close();
     free( bmp->Palette );
     free( bmp );
     return NULL;
@@ -291,10 +292,10 @@ BMP* BMP_ReadFile( const char* filename )
 
 
   /* Read image data */
-  if ( fread( bmp->Data, sizeof( UCHAR ), bmp->Header.ImageDataSize, f ) != bmp->Header.ImageDataSize )
+  if ( f.read( bmp->Data, bmp->Header.ImageDataSize) != bmp->Header.ImageDataSize )
   {
     BMP_LAST_ERROR_CODE = BMP_FILE_INVALID;
-    fclose( f );
+    f.close();
     free( bmp->Data );
     free( bmp->Palette );
     free( bmp );
@@ -302,7 +303,7 @@ BMP* BMP_ReadFile( const char* filename )
   }
 
 
-  fclose( f );
+  f.close();
 
   BMP_LAST_ERROR_CODE = BMP_OK;
 
@@ -315,7 +316,7 @@ BMP* BMP_ReadFile( const char* filename )
 **************************************************************/
 void BMP_WriteFile( BMP* bmp, const char* filename )
 {
-  FILE* f;
+  File f;
 
   if ( filename == NULL )
   {
@@ -325,7 +326,7 @@ void BMP_WriteFile( BMP* bmp, const char* filename )
 
 
   /* Open file */
-  f = fopen( filename, "wb" );
+  f = SPIFFS.open( filename, "w" );
   if ( f == NULL )
   {
     BMP_LAST_ERROR_CODE = BMP_FILE_NOT_FOUND;
@@ -334,10 +335,10 @@ void BMP_WriteFile( BMP* bmp, const char* filename )
 
 
   /* Write header */
-  if ( WriteHeader( bmp, f ) != BMP_OK )
+  if ( WriteHeader( bmp, &f ) != BMP_OK )
   {
     BMP_LAST_ERROR_CODE = BMP_IO_ERROR;
-    fclose( f );
+    f.close();
     return;
   }
 
@@ -345,26 +346,26 @@ void BMP_WriteFile( BMP* bmp, const char* filename )
   /* Write palette */
   if ( bmp->Palette )
   {
-    if ( fwrite( bmp->Palette, sizeof( UCHAR ), BMP_PALETTE_SIZE, f ) != BMP_PALETTE_SIZE )
+    if ( f.write( bmp->Palette, BMP_PALETTE_SIZE) != BMP_PALETTE_SIZE )
     {
       BMP_LAST_ERROR_CODE = BMP_IO_ERROR;
-      fclose( f );
+      f.close();
       return;
     }
   }
 
 
   /* Write data */
-  if ( fwrite( bmp->Data, sizeof( UCHAR ), bmp->Header.ImageDataSize, f ) != bmp->Header.ImageDataSize )
+  if ( f.write( bmp->Data, bmp->Header.ImageDataSize) != bmp->Header.ImageDataSize )
   {
     BMP_LAST_ERROR_CODE = BMP_IO_ERROR;
-    fclose( f );
+    f.close();
     return;
   }
 
 
   BMP_LAST_ERROR_CODE = BMP_OK;
-  fclose( f );
+  f.close();
 }
 
 
@@ -653,7 +654,7 @@ const char* BMP_GetErrorDescription()
   Reads the BMP file's header into the data structure.
   Returns BMP_OK on success.
 **************************************************************/
-int ReadHeader( BMP* bmp, FILE* f )
+int ReadHeader( BMP* bmp, File* f )
 {
   if ( bmp == NULL || f == NULL )
   {
@@ -687,7 +688,7 @@ int ReadHeader( BMP* bmp, FILE* f )
   Writes the BMP file's header into the data structure.
   Returns BMP_OK on success.
 **************************************************************/
-int WriteHeader( BMP* bmp, FILE* f )
+int WriteHeader( BMP* bmp, File* f )
 {
   if ( bmp == NULL || f == NULL )
   {
@@ -721,7 +722,7 @@ int WriteHeader( BMP* bmp, FILE* f )
   Reads a little-endian unsigned int from the file.
   Returns non-zero on success.
 **************************************************************/
-int ReadUINT( UINT* x, FILE* f )
+int ReadUINT( UINT* x, File* f )
 {
   UCHAR little[ 4 ];  /* BMPs use 32 bit ints */
 
@@ -730,7 +731,7 @@ int ReadUINT( UINT* x, FILE* f )
     return 0;
   }
 
-  if ( fread( little, 4, 1, f ) != 1 )
+  if ( f->read( little, 4) != 4 )
   {
     return 0;
   }
@@ -745,7 +746,7 @@ int ReadUINT( UINT* x, FILE* f )
   Reads a little-endian unsigned short int from the file.
   Returns non-zero on success.
 **************************************************************/
-int ReadUSHORT( USHORT *x, FILE* f )
+int ReadUSHORT( USHORT *x, File* f )
 {
   UCHAR little[ 2 ];  /* BMPs use 16 bit shorts */
 
@@ -754,7 +755,7 @@ int ReadUSHORT( USHORT *x, FILE* f )
     return 0;
   }
 
-  if ( fread( little, 2, 1, f ) != 1 )
+  if ( f->read( little, 2) != 2 )
   {
     return 0;
   }
@@ -769,7 +770,7 @@ int ReadUSHORT( USHORT *x, FILE* f )
   Writes a little-endian unsigned int to the file.
   Returns non-zero on success.
 **************************************************************/
-int WriteUINT( UINT x, FILE* f )
+int WriteUINT( UINT x, File* f )
 {
   UCHAR little[ 4 ];  /* BMPs use 32 bit ints */
 
@@ -778,7 +779,7 @@ int WriteUINT( UINT x, FILE* f )
   little[ 1 ] = (UCHAR)( ( x & 0x0000ff00 ) >> 8 );
   little[ 0 ] = (UCHAR)( ( x & 0x000000ff ) >> 0 );
 
-  return ( f && fwrite( little, 4, 1, f ) == 1 );
+  return ( f && f->write( little, 4) == 4 );
 }
 
 
@@ -786,12 +787,12 @@ int WriteUINT( UINT x, FILE* f )
   Writes a little-endian unsigned short int to the file.
   Returns non-zero on success.
 **************************************************************/
-int WriteUSHORT( USHORT x, FILE* f )
+int WriteUSHORT( USHORT x, File* f )
 {
   UCHAR little[ 2 ];  /* BMPs use 16 bit shorts */
 
   little[ 1 ] = (UCHAR)( ( x & 0xff00 ) >> 8 );
   little[ 0 ] = (UCHAR)( ( x & 0x00ff ) >> 0 );
 
-  return ( f && fwrite( little, 2, 1, f ) == 1 );
+  return ( f && f->write( little, 2) == 2 );
 }

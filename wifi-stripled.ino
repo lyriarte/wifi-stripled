@@ -415,13 +415,11 @@ bool openBitmapFile(String path) {
     Serial.println("File not found");
     return false;
   }
-  File file = SPIFFS.open(path, "r");
-  BMP* bmp = NULL;
+  BMP* bmp = BMP_ReadFile(path.c_str());
   if (bmp == NULL) {
     Serial.println("Bitmap file open error");
     return false;
   }
-  file.close();
   free( bmp );
   return true;
 }
