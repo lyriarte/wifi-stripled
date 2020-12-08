@@ -420,6 +420,14 @@ bool openBitmapFile(String path) {
     Serial.println("Bitmap file open error");
     return false;
   }
+  int i=0, w=BMP_GetWidth(bmp), h=BMP_GetHeight(bmp);
+  byte r,g,b;
+  for (int x=0; x<w; x++) {
+    for (int y=0; y<h;y++) {
+       BMP_GetPixelRGB(bmp,x,y,&r,&g,&b);
+       leds[i++] = CRGB(r, g, b);
+    }
+  }
   free( bmp );
   return true;
 }
