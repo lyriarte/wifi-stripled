@@ -425,7 +425,13 @@ bool openBitmapFile(String path) {
   for (int y=0; y<h; y++) {
     for (int x=0; x<w;x++) {
        BMP_GetPixelRGB(bmp,x,y,&r,&g,&b);
-       leds[i++] = CRGB(r, g, b);
+       if (y%2 == 0) {
+	       leds[i++] = CRGB(r, g, b);
+       }
+       else {
+	       leds[w*(int)(i/w) + w - ((i%w) + 1)] = CRGB(r, g, b);
+	       ++i;
+       }
     }
   }
   free( bmp );
