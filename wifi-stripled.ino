@@ -374,16 +374,7 @@ void delayedWifiClientStop(int start_ms) {
 		wifiClient.stop();
 }
 
-bool openBitmapFile(String path) {
-  if (!SPIFFS.exists(path)) {
-    Serial.println("File not found");
-    return false;
-  }
-  BMP* bmp = BMP_ReadFile(path.c_str());
-  if (bmp == NULL) {
-    Serial.println("Bitmap file open error");
-    return false;
-  }
+void stripledBitmapBlit(BMP* bmp) {
   int i=0, w=BMP_GetWidth(bmp), h=BMP_GetHeight(bmp);
   byte r,g,b;
   for (int y=0; y<h; y++) {
@@ -398,8 +389,19 @@ bool openBitmapFile(String path) {
        }
     }
   }
-  free( bmp );
-  return true;
+}
+
+
+BMP* openBitmapFile(String path) {
+  if (!SPIFFS.exists(path)) {
+    Serial.println("File not found");
+    return NULL;
+  }
+  BMP* bmp = BMP_ReadFile(path.c_str());
+  if (bmp == NULL) {
+    Serial.println("Bitmap file open error");
+  }
+  return bmp;
 }
 
 void loop() {
@@ -408,7 +410,11 @@ void loop() {
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
-  openBitmapFile("/test.bmp");
+	BMP* bmp = openBitmapFile("/test.bmp");
+	if (bmp != NULL) {
+		stripledBitmapBlit(bmp);
+		free( bmp );
+	}
 	while (wifiStatus == WL_CONNECTED) {
 		start_loop_ms = millis();
 		wifiClient = wifiServer.available();
