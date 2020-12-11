@@ -30,7 +30,9 @@
 #define MINIMUM_UPDATE_MS 2
 
 #define STRIPLED_GPIO	5
-#define N_STRIPLED    426
+#define STRIPLED_W    71
+#define STRIPLED_H    6
+#define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
 
 
 /* **** **** **** **** **** ****
@@ -374,19 +376,25 @@ void delayedWifiClientStop(int start_ms) {
 		wifiClient.stop();
 }
 
-void stripledBitmapBlit(BMP* bmp) {
-  int i=0, w=BMP_GetWidth(bmp), h=BMP_GetHeight(bmp);
-  byte r,g,b;
-  for (int y=0; y<h; y++) {
-    for (int x=0; x<w;x++) {
-       BMP_GetPixelRGB(bmp,x,y,&r,&g,&b);
-       if (y%2 == 0) {
-	       leds[i++] = CRGB(r, g, b);
-       }
-       else {
-	       leds[w*(int)(i/w) + w - ((i%w) + 1)] = CRGB(r, g, b);
-	       ++i;
-       }
+void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
+	int i=i0, ix, iy, w, h;
+	w = min(min((int)BMP_GetWidth(bmp),STRIPLED_W),ox+dx);
+	h = min(min((int)BMP_GetHeight(bmp),STRIPLED_H),oy+dy);
+	byte r,g,b;
+	for (int y=0; y<STRIPLED_H; y++) {
+	  iy = y+oy;
+	  for (int x=0; x<STRIPLED_W;x++) {
+		ix = x+ox;
+		if (ix>=0 && iy>=0 && ix<w && iy<h) {
+		   BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
+		   if (y%2 == 0) {
+			   leds[i] = CRGB(r, g, b);
+		   }
+		   else {
+			   leds[STRIPLED_W*(int)(i/STRIPLED_W) + STRIPLED_W - ((i%STRIPLED_W) + 1)] = CRGB(r, g, b);
+		   }
+	   }
+	   ++i;
     }
   }
 }
@@ -412,7 +420,7 @@ void loop() {
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
 	BMP* bmp = openBitmapFile("/test.bmp");
 	if (bmp != NULL) {
-		stripledBitmapBlit(bmp);
+		stripledBitmapBlit(bmp,0,0,0,STRIPLED_W,STRIPLED_H);
 		free( bmp );
 	}
 	while (wifiStatus == WL_CONNECTED) {
