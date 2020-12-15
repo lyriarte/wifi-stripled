@@ -1,0 +1,11 @@
+#define quotedbl_FixedMedium_width 5
+#define quotedbl_FixedMedium_height 7
+static unsigned char quotedbl_FixedMedium_bits[] = {
+  0x0a, 
+  0x0a, 
+  0x0a, 
+  0x00, 
+  0x00, 
+  0x00, 
+  0x00
+};

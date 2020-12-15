@@ -1,0 +1,11 @@
+#define ampersand_FixedMedium_width 5
+#define ampersand_FixedMedium_height 7
+static unsigned char ampersand_FixedMedium_bits[] = {
+  0x00, 
+  0x02, 
+  0x05, 
+  0x02, 
+  0x05, 
+  0x0a, 
+  0x00
+};

@@ -1,0 +1,11 @@
+#define comma_FixedMedium_width 5
+#define comma_FixedMedium_height 7
+static unsigned char comma_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x00, 
+  0x00, 
+  0x0c, 
+  0x04, 
+  0x02
+};

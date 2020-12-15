@@ -1,0 +1,11 @@
+#define K_FixedMedium_width 5
+#define K_FixedMedium_height 7
+static unsigned char K_FixedMedium_bits[] = {
+  0x09, 
+  0x05, 
+  0x03, 
+  0x03, 
+  0x05, 
+  0x09, 
+  0x00
+};

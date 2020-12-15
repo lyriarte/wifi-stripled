@@ -1,0 +1,11 @@
+#define semicolon_FixedMedium_width 5
+#define semicolon_FixedMedium_height 7
+static unsigned char semicolon_FixedMedium_bits[] = {
+  0x00, 
+  0x06, 
+  0x06, 
+  0x00, 
+  0x06, 
+  0x02, 
+  0x01
+};

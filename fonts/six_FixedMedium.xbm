@@ -1,0 +1,11 @@
+#define six_FixedMedium_width 5
+#define six_FixedMedium_height 7
+static unsigned char six_FixedMedium_bits[] = {
+  0x06, 
+  0x01, 
+  0x07, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};

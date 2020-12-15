@@ -1,0 +1,11 @@
+#define four_FixedMedium_width 5
+#define four_FixedMedium_height 7
+static unsigned char four_FixedMedium_bits[] = {
+  0x04, 
+  0x06, 
+  0x05, 
+  0x0f, 
+  0x04, 
+  0x04, 
+  0x00
+};

@@ -1,0 +1,11 @@
+#define braceleft_FixedMedium_width 5
+#define braceleft_FixedMedium_height 7
+static unsigned char braceleft_FixedMedium_bits[] = {
+  0x08, 
+  0x04, 
+  0x06, 
+  0x04, 
+  0x04, 
+  0x08, 
+  0x00
+};

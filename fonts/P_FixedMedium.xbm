@@ -1,0 +1,11 @@
+#define P_FixedMedium_width 5
+#define P_FixedMedium_height 7
+static unsigned char P_FixedMedium_bits[] = {
+  0x07, 
+  0x09, 
+  0x09, 
+  0x07, 
+  0x01, 
+  0x01, 
+  0x00
+};

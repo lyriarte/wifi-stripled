@@ -1,0 +1,11 @@
+#define asterisk_FixedMedium_width 5
+#define asterisk_FixedMedium_height 7
+static unsigned char asterisk_FixedMedium_bits[] = {
+  0x00, 
+  0x0a, 
+  0x04, 
+  0x0e, 
+  0x04, 
+  0x0a, 
+  0x00
+};

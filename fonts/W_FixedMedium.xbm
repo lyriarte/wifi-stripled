@@ -1,0 +1,11 @@
+#define W_FixedMedium_width 5
+#define W_FixedMedium_height 7
+static unsigned char W_FixedMedium_bits[] = {
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0f, 
+  0x0f, 
+  0x09, 
+  0x00
+};

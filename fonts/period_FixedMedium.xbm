@@ -1,0 +1,11 @@
+#define period_FixedMedium_width 5
+#define period_FixedMedium_height 7
+static unsigned char period_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x00, 
+  0x00, 
+  0x06, 
+  0x06, 
+  0x00
+};

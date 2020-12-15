@@ -1,0 +1,11 @@
+#define slash_FixedMedium_width 5
+#define slash_FixedMedium_height 7
+static unsigned char slash_FixedMedium_bits[] = {
+  0x00, 
+  0x08, 
+  0x04, 
+  0x02, 
+  0x01, 
+  0x00, 
+  0x00
+};

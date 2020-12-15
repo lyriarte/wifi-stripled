@@ -1,0 +1,11 @@
+#define z_FixedMedium_width 5
+#define z_FixedMedium_height 7
+static unsigned char z_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x0f, 
+  0x04, 
+  0x02, 
+  0x0f, 
+  0x00
+};

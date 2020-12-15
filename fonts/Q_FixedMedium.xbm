@@ -1,0 +1,11 @@
+#define Q_FixedMedium_width 5
+#define Q_FixedMedium_height 7
+static unsigned char Q_FixedMedium_bits[] = {
+  0x06, 
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0b, 
+  0x06, 
+  0x08
+};

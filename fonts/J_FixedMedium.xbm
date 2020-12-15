@@ -1,0 +1,11 @@
+#define J_FixedMedium_width 5
+#define J_FixedMedium_height 7
+static unsigned char J_FixedMedium_bits[] = {
+  0x08, 
+  0x08, 
+  0x08, 
+  0x08, 
+  0x09, 
+  0x06, 
+  0x00
+};
