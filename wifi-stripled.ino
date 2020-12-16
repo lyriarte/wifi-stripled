@@ -348,6 +348,48 @@ bool handleHttpRequest(const char * req) {
 }
 
 
+
+/* 
+ * Stripled bitmap
+ */
+
+void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
+	int i=i0, ix, iy, w, h;
+	w = min(min((int)BMP_GetWidth(bmp),STRIPLED_W),ox+dx);
+	h = min(min((int)BMP_GetHeight(bmp),STRIPLED_H),oy+dy);
+	byte r,g,b;
+	for (int y=0; y<STRIPLED_H; y++) {
+	  iy = y+oy;
+	  for (int x=0; x<STRIPLED_W;x++) {
+		ix = x+ox;
+		if (ix>=0 && iy>=0 && ix<w && iy<h) {
+		   BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
+		   if (y%2 == 0) {
+			   leds[i] = CRGB(r, g, b);
+		   }
+		   else {
+			   leds[STRIPLED_W*(int)(i/STRIPLED_W) + STRIPLED_W - ((i%STRIPLED_W) + 1)] = CRGB(r, g, b);
+		   }
+	   }
+	   ++i;
+    }
+  }
+}
+
+BMP* openBitmapFile(String path) {
+  if (!SPIFFS.exists(path)) {
+    Serial.println("File not found");
+    return NULL;
+  }
+  BMP* bmp = BMP_ReadFile(path.c_str());
+  if (bmp == NULL) {
+    Serial.println("Bitmap file open error");
+  }
+  return bmp;
+}
+
+
+
 /* 
  * Main loop
  */
@@ -374,42 +416,6 @@ void delayedWifiClientStop(int start_ms) {
 	}
 	if (wifiClient)
 		wifiClient.stop();
-}
-
-void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
-	int i=i0, ix, iy, w, h;
-	w = min(min((int)BMP_GetWidth(bmp),STRIPLED_W),ox+dx);
-	h = min(min((int)BMP_GetHeight(bmp),STRIPLED_H),oy+dy);
-	byte r,g,b;
-	for (int y=0; y<STRIPLED_H; y++) {
-	  iy = y+oy;
-	  for (int x=0; x<STRIPLED_W;x++) {
-		ix = x+ox;
-		if (ix>=0 && iy>=0 && ix<w && iy<h) {
-		   BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
-		   if (y%2 == 0) {
-			   leds[i] = CRGB(r, g, b);
-		   }
-		   else {
-			   leds[STRIPLED_W*(int)(i/STRIPLED_W) + STRIPLED_W - ((i%STRIPLED_W) + 1)] = CRGB(r, g, b);
-		   }
-	   }
-	   ++i;
-    }
-  }
-}
-
-
-BMP* openBitmapFile(String path) {
-  if (!SPIFFS.exists(path)) {
-    Serial.println("File not found");
-    return NULL;
-  }
-  BMP* bmp = BMP_ReadFile(path.c_str());
-  if (bmp == NULL) {
-    Serial.println("Bitmap file open error");
-  }
-  return bmp;
 }
 
 void loop() {
