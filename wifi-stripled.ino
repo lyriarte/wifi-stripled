@@ -48,6 +48,12 @@
 
 extern XBMFont fixedMedium_5x7;
 
+enum {
+	ALIGN_LEFT,
+	ALIGN_CENTER,
+	ALIGN_RIGHT
+};
+
 /*
  * WiFi
  */
@@ -447,6 +453,21 @@ void displayBitmapFile(String path) {
 	free( bmp );
 }
 
+void displayTextBitmap(String text, CRGB bg, CRGB fg, int align) {
+	BMP* bmp = newTextBitmap(text, fixedMedium_5x7);
+	if (bmp != NULL) {
+		int i0 = 0;
+		if (align == ALIGN_CENTER)
+			i0 = (STRIPLED_W-BMP_GetWidth(bmp))/2;
+		else if (align == ALIGN_RIGHT)
+			i0 = (STRIPLED_W-BMP_GetWidth(bmp));
+		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
+		drawTextBitmap(bmp, text, fixedMedium_5x7, 0, 0, fg);
+		stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
+		free( bmp );
+	}
+}
+
 /* 
  * Main loop
  */
@@ -476,14 +497,8 @@ void delayedWifiClientStop(int start_ms) {
 }
 
 void loop() {
-	BMP* bmp = newTextBitmap(hostnameSSID, fixedMedium_5x7);
-	if (bmp != NULL) {
-		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), CRGB(0, 0, 0));
-		drawTextBitmap(bmp, hostnameSSID, fixedMedium_5x7, 0, 0, CRGB(4, 8, 16));
-		stripledBitmapBlit(bmp, (STRIPLED_W-BMP_GetWidth(bmp))/2, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
-		free( bmp );
-	}
 	int start_loop_ms;
+	displayTextBitmap(hostnameSSID, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
