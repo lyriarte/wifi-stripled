@@ -236,6 +236,8 @@ bool wifiConnect(int retry) {
 bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
+	fillStripledDisplay(CRGB(0,0,0));
+	displayTextBitmap(net->SSID, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -249,6 +251,8 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	if (wifiStatus == WL_CONNECTED) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
+		fillStripledDisplay(CRGB(0,0,0));
+		displayTextBitmap(WiFi.localIP().toString(), CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
 			Serial.println(hostnameSSID);
@@ -410,6 +414,13 @@ void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, uns
  * Stripled bitmap
  */
 
+
+void fillStripledDisplay(CRGB crgb) {
+	BMP* bmp = BMP_Create(STRIPLED_W, STRIPLED_H, 24);
+	fillBitmap(bmp, 0, 0, STRIPLED_W, STRIPLED_H, crgb);
+	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
+}
+
 void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
 	int i=i0, ix, iy, w, h;
 	w = min(min((int)BMP_GetWidth(bmp),STRIPLED_W),ox+dx);
@@ -499,6 +510,7 @@ void delayedWifiClientStop(int start_ms) {
 void loop() {
 	int start_loop_ms;
 	displayTextBitmap(hostnameSSID, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER);
+	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
