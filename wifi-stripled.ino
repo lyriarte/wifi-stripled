@@ -367,14 +367,14 @@ bool handleHttpRequest(const char * req) {
  * XBM font
  */
 
-void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsigned int y0, byte r, byte g, byte b) {
+void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsigned int y0, CRGB crgb) {
 	unsigned int x = x0;
 	for (int i=0; i<text.length(); i++) {
 		char c = text.charAt(i);
 		for (int j=0; j<font.getWidth(); j++) {
 			for (int k=0; k<font.getHeight(); k++)
 				if (font.getPixel(c,k,j))
-					BMP_SetPixelRGB(bmp, x+j, y0+k, r, g, b);
+					BMP_SetPixelRGB(bmp, x+j, y0+k, crgb.r, crgb.g, crgb.b);
 		}
 		x += font.getWidth();
 	}
@@ -393,10 +393,10 @@ BMP* newTextBitmap(String text, XBMFont font) {
 	return bmp;
 }
 
-void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, unsigned int dy, byte r, byte g, byte b) {
+void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, unsigned int dy, CRGB crgb) {
 	for (unsigned int x=x0; x<x0+dx; x++)
 		for (unsigned int y=y0; y<y0+dy; y++)
-			BMP_SetPixelRGB(bmp, x, y, r, g, b);
+			BMP_SetPixelRGB(bmp, x, y, crgb.r, crgb.g, crgb.b);
 }
 
 
@@ -479,8 +479,8 @@ void delayedWifiClientStop(int start_ms) {
 void loop() {
 	BMP* bmp = newTextBitmap(hostnameSSID, fixedMedium_5x7);
 	if (bmp != NULL) {
-		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), 0, 0, 0);
-		drawTextBitmap(bmp, hostnameSSID, fixedMedium_5x7, 0, 0, 4, 8, 16);
+		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), CRGB(0, 0, 0));
+		drawTextBitmap(bmp, hostnameSSID, fixedMedium_5x7, 0, 0, CRGB(4, 8, 16));
 		stripledBitmapBlit(bmp, (STRIPLED_W-BMP_GetWidth(bmp))/2, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
 		free( bmp );
 	}
