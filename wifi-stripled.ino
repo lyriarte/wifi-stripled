@@ -327,6 +327,13 @@ bool handleGRADIENTRequest(const char * req) {
   return true;
 }
 
+bool handleMSGRequest(const char * req) {
+	String strReq = req;
+	fillStripledDisplay(CRGB(0,0,0));
+	displayTextBitmap(strReq.substring(strReq.indexOf("/")+1), CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
+	return true;
+}
+
 
 
 /*
@@ -363,6 +370,8 @@ bool handleHttpRequest(const char * req) {
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("MSG/"))
+		result = handleMSGRequest(strReq.substring(4).c_str());
 	if (result)
 		replyHttpSuccess(strReq);
 	else
