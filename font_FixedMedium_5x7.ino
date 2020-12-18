@@ -325,13 +325,13 @@ static unsigned char colon_FixedMedium_bits[] = {
 #define semicolon_FixedMedium_width 5
 #define semicolon_FixedMedium_height 7
 static unsigned char semicolon_FixedMedium_bits[] = {
-  0x00, 
   0x06, 
   0x06, 
   0x00, 
   0x06, 
   0x02, 
-  0x01
+  0x01,
+  0x00 
 };
 
 #define less_FixedMedium_width 5
@@ -854,12 +854,12 @@ static unsigned char f_FixedMedium_bits[] = {
 #define g_FixedMedium_height 7
 static unsigned char g_FixedMedium_bits[] = {
   0x00, 
-  0x00, 
   0x0e, 
   0x09, 
   0x06, 
   0x01, 
-  0x0e
+  0x0e,
+  0x00
 };
 
 #define h_FixedMedium_width 5
@@ -893,9 +893,9 @@ static unsigned char j_FixedMedium_bits[] = {
   0x00, 
   0x08, 
   0x08, 
-  0x08, 
   0x0a, 
-  0x04
+  0x04,
+  0x00
 };
 
 #define k_FixedMedium_width 5
@@ -962,24 +962,24 @@ static unsigned char o_FixedMedium_bits[] = {
 #define p_FixedMedium_height 7
 static unsigned char p_FixedMedium_bits[] = {
   0x00, 
-  0x00, 
   0x07, 
   0x09, 
   0x09, 
   0x07, 
-  0x01
+  0x01,
+  0x00
 };
 
 #define q_FixedMedium_width 5
 #define q_FixedMedium_height 7
 static unsigned char q_FixedMedium_bits[] = {
   0x00, 
-  0x00, 
   0x0e, 
   0x09, 
   0x09, 
   0x0e, 
-  0x08
+  0x08,
+  0x00 
 };
 
 #define r_FixedMedium_width 5
@@ -1070,12 +1070,12 @@ static unsigned char x_FixedMedium_bits[] = {
 #define y_FixedMedium_height 7
 static unsigned char y_FixedMedium_bits[] = {
   0x00, 
-  0x00, 
   0x09, 
   0x09, 
   0x0a, 
   0x04, 
-  0x02
+  0x02,
+  0x00
 };
 
 #define z_FixedMedium_width 5
