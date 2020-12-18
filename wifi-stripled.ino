@@ -477,6 +477,13 @@ void delayedWifiClientStop(int start_ms) {
 }
 
 void loop() {
+	BMP* bmp = newTextBitmap(hostnameSSID, fixedMedium_5x7);
+	if (bmp != NULL) {
+		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), 0, 0, 0);
+		drawTextBitmap(bmp, hostnameSSID, fixedMedium_5x7, 0, 0, 4, 8, 16);
+		stripledBitmapBlit(bmp, (STRIPLED_W-BMP_GetWidth(bmp))/2, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
+		free( bmp );
+	}
 	int start_loop_ms;
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
