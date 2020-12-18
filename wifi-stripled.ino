@@ -256,44 +256,10 @@ void updateLEDStatus(int index) {
 	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
 }
 
-bool handleLEDRequest(const char * req) {
-	String strReq = req;
-	int index = strReq.toInt();
-	if (index < 0 || index >= N_LED)
-		return false;
-	strReq = strReq.substring(strReq.indexOf("/")+1);
-	if (strReq.startsWith("POLL/")) {
-		handlePollInfoRequest(strReq.substring(5).c_str(), &(ledInfos[index].pollInfo));
-		ledInfos[index].blink_on_ms = ledInfos[index].blink_off_ms = ledInfos[index].pollInfo.poll_ms;
-		return true;
-	}
-	if (strReq.startsWith("BLINK/")) {
-		strReq = strReq.substring(strReq.indexOf("/")+1);
-		ledInfos[index].blink = strReq.toInt();
-		return true;
-	}
-	if (strReq.startsWith("BLINKON/")) {
-		strReq = strReq.substring(strReq.indexOf("/")+1);
-		ledInfos[index].blink_on_ms = strReq.toInt();
-		return true;
-	}
-	if (strReq.startsWith("BLINKOFF/")) {
-		strReq = strReq.substring(strReq.indexOf("/")+1);
-		ledInfos[index].blink_off_ms = strReq.toInt();
-		return true;
-	}
-	if (strReq.endsWith("ON")) {
-		ledInfos[index].blink = 0;
-		ledInfos[index].state = HIGH;
-	}
-	else if (strReq.endsWith("OFF")) {
-		ledInfos[index].blink = 0;
-		ledInfos[index].state = LOW;
-	}
-	else
-		return false;
-	return true;
-}
+
+/*
+ * Handle REST commands
+ */
 
 bool handleSTRIPLEDRequest(const char * req) {
 	String strReq = req;
@@ -365,9 +331,7 @@ bool handleHttpRequest(const char * req) {
 		return false;
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
 	bool result = false;
-	if (strReq.startsWith("LED/"))
-		result = handleLEDRequest(strReq.substring(4).c_str());
-	else if (strReq.startsWith("STRIPLED/"))
+	if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
