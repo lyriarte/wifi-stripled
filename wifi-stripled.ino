@@ -80,7 +80,7 @@ wifiNetInfo networks[] = {
   }
 };
 
-
+int i_network = -1;
 int wifiStatus = WL_IDLE_STATUS;
 char hostnameSSID[] = "ESP_XXXXXX";
 char wifiMacStr[] = "00:00:00:00:00:00";
@@ -214,17 +214,16 @@ void wifiMacInit() {
 }
 
 bool wifiConnect(int retry) {
-	int i,n;
 	wifiStatus = WiFi.status();
-	if (wifiStatus == WL_CONNECTED)
+	if (i_network >= 0 && wifiStatus == WL_CONNECTED)
 		return true;
-	n = sizeof(networks) / sizeof(wifiNetInfo);
-	for (i=0; i<n; i++) {
-		if (wifiNetConnect(&networks[i], retry))
+	for (i_network=0; i_network<sizeof(networks) / sizeof(wifiNetInfo); i_network++) {
+		if (wifiNetConnect(&networks[i_network], retry))
 			return true;
 	}
 	WiFi.disconnect();
 	wifiStatus = WiFi.status();
+	i_network = -1;
 	return false;
 }
 
