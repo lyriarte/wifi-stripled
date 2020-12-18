@@ -86,6 +86,8 @@ wifiNetInfo networks[] = {
   }
 };
 
+#define N_NETWORKS (sizeof(networks) / sizeof(wifiNetInfo))
+
 int i_network = -1;
 int wifiStatus = WL_IDLE_STATUS;
 char hostnameSSID[] = "ESP_XXXXXX";
@@ -223,7 +225,7 @@ bool wifiConnect(int retry) {
 	wifiStatus = WiFi.status();
 	if (i_network >= 0 && wifiStatus == WL_CONNECTED)
 		return true;
-	for (i_network=0; i_network<sizeof(networks) / sizeof(wifiNetInfo); i_network++) {
+	for (i_network=0; i_network<N_NETWORKS; i_network++) {
 		if (wifiNetConnect(&networks[i_network], retry))
 			return true;
 	}
@@ -334,6 +336,27 @@ bool handleMSGRequest(const char * req) {
 	return true;
 }
 
+bool handleSPLASHSCREENRequest() {
+	displayBitmapFile(SPLASH_SCREEN_FILE);
+	return true;
+}
+
+bool handleSSIDRequest() {
+	fillStripledDisplay(CRGB(0,0,0));
+	if (i_network < 0 || i_network >= N_NETWORKS)
+		return false;
+	displayTextBitmap(networks[i_network].SSID, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
+	return true;
+}
+
+bool handleIPRequest() {
+	fillStripledDisplay(CRGB(0,0,0));
+	if (i_network < 0 || i_network >= N_NETWORKS)
+		return false;
+	displayTextBitmap(networks[i_network].address.toString(), CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+	return true;
+}
+
 
 
 /*
@@ -372,6 +395,12 @@ bool handleHttpRequest(const char * req) {
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("MSG/"))
 		result = handleMSGRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("SPLASHSCREEN"))
+		result = handleSPLASHSCREENRequest();
+	else if (strReq.startsWith("SSID"))
+		result = handleSSIDRequest();
+	else if (strReq.startsWith("IP"))
+		result = handleIPRequest();
 	if (result)
 		replyHttpSuccess(strReq);
 	else
