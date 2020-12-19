@@ -255,6 +255,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		Serial.println(WiFi.localIP());
 		fillStripledDisplay(CRGB(0,0,0));
 		displayTextBitmap(WiFi.localIP().toString(), CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+		net->address = WiFi.localIP();
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
 			Serial.println(hostnameSSID);
