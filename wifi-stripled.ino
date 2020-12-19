@@ -8,6 +8,7 @@
 #include <FS.h>
 #include <FastLED.h>
 
+#include "XBMFont.h"
 #include "qdbmp.h"
 
 /* **** **** **** **** **** ****
@@ -34,10 +35,18 @@
 #define STRIPLED_H    6
 #define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
 
+#define SPLASH_SCREEN_FILE "/test.bmp"
+#define SPLASH_SCREEN_DELAY_MS 500
 
 /* **** **** **** **** **** ****
  * Global variables
  * **** **** **** **** **** ****/
+
+/* 
+ * XBM font
+ */
+
+extern XBMFont fixedMedium_5x7;
 
 /*
  * WiFi
@@ -140,12 +149,17 @@ void setup() {
 		pinMode(ledInfos[i].gpio, OUTPUT);
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO>(leds, N_STRIPLED);
 	Serial.begin(BPS_HOST);
+	SPIFFS.begin();
+	displaySplashScreen();
 	wifiMacInit();
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
-  SPIFFS.begin(); 
 }
 
+void displaySplashScreen() {
+	displayBitmapFile(SPLASH_SCREEN_FILE);
+	FastLED.delay(SPLASH_SCREEN_DELAY_MS);
+}
 
 /*
  * Time management
@@ -350,6 +364,44 @@ bool handleHttpRequest(const char * req) {
 
 
 /* 
+ * XBM font
+ */
+
+void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsigned int y0, byte r, byte g, byte b) {
+	unsigned int x = x0;
+	for (int i=0; i<text.length(); i++) {
+		char c = text.charAt(i);
+		for (int j=0; j<font.getWidth(); j++) {
+			for (int k=0; k<font.getHeight(); k++)
+				if (font.getPixel(c,k,j))
+					BMP_SetPixelRGB(bmp, x+j, y0+k, r, g, b);
+		}
+		x += font.getWidth();
+	}
+}
+
+/* 
+ * Text bitmap
+ */
+
+BMP* newTextBitmap(String text, XBMFont font) {
+	BMP* bmp = BMP_Create(text.length() * font.getWidth(), font.getHeight(), 24);
+	if (bmp == NULL) {
+		Serial.println("Bitmap allocation failed");
+		return bmp;
+	}
+	return bmp;
+}
+
+void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, unsigned int dy, byte r, byte g, byte b) {
+	for (unsigned int x=x0; x<x0+dx; x++)
+		for (unsigned int y=y0; y<y0+dy; y++)
+			BMP_SetPixelRGB(bmp, x, y, r, g, b);
+}
+
+
+
+/* 
  * Stripled bitmap
  */
 
@@ -388,7 +440,13 @@ BMP* openBitmapFile(String path) {
   return bmp;
 }
 
-
+void displayBitmapFile(String path) {
+	BMP* bmp = openBitmapFile(path);
+	if (bmp == NULL)
+		return;
+	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
+	free( bmp );
+}
 
 /* 
  * Main loop
@@ -424,11 +482,6 @@ void loop() {
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
-	BMP* bmp = openBitmapFile("/test.bmp");
-	if (bmp != NULL) {
-		stripledBitmapBlit(bmp,0,0,0,STRIPLED_W,STRIPLED_H);
-		free( bmp );
-	}
 	while (wifiStatus == WL_CONNECTED) {
 		start_loop_ms = millis();
 		wifiClient = wifiServer.available();
