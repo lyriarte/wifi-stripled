@@ -239,7 +239,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
 	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(net->SSID, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
+	displayTextBitmap(net->SSID, fixedMedium_5x7, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -254,7 +254,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
 		fillStripledDisplay(CRGB(0,0,0));
-		displayTextBitmap(WiFi.localIP().toString(), CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+		displayTextBitmap(WiFi.localIP().toString(), fixedMedium_5x7, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
 		net->address = WiFi.localIP();
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
@@ -333,7 +333,7 @@ bool handleGRADIENTRequest(const char * req) {
 bool handleMSGRequest(const char * req) {
 	String strReq = req;
 	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(strReq.substring(strReq.indexOf("/")+1), CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
+	displayTextBitmap(strReq.substring(strReq.indexOf("/")+1), fixedMedium_5x7, CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
 	return true;
 }
 
@@ -346,7 +346,7 @@ bool handleSSIDRequest() {
 	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].SSID, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
+	displayTextBitmap(networks[i_network].SSID, fixedMedium_5x7, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
 	return true;
 }
 
@@ -354,7 +354,7 @@ bool handleIPRequest() {
 	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].address.toString(), CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+	displayTextBitmap(networks[i_network].address.toString(), fixedMedium_5x7, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
 	return true;
 }
 
@@ -504,8 +504,8 @@ void displayBitmapFile(String path) {
 	BMP_Free( bmp );
 }
 
-void displayTextBitmap(String text, CRGB bg, CRGB fg, int align) {
-	BMP* bmp = newTextBitmap(text, fixedMedium_5x7);
+void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align) {
+	BMP* bmp = newTextBitmap(text, font);
 	if (bmp != NULL) {
 		int i0 = 0;
 		if (align == ALIGN_CENTER)
@@ -513,7 +513,7 @@ void displayTextBitmap(String text, CRGB bg, CRGB fg, int align) {
 		else if (align == ALIGN_RIGHT)
 			i0 = (STRIPLED_W-BMP_GetWidth(bmp));
 		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
-		drawTextBitmap(bmp, text, fixedMedium_5x7, 0, 0, fg);
+		drawTextBitmap(bmp, text, font, 0, 0, fg);
 		stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
 		BMP_Free( bmp );
 	}
@@ -549,7 +549,7 @@ void delayedWifiClientStop(int start_ms) {
 
 void loop() {
 	int start_loop_ms;
-	displayTextBitmap(hostnameSSID, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER);
+	displayTextBitmap(hostnameSSID, fixedMedium_5x7, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER);
 	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
