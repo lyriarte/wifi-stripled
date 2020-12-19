@@ -419,6 +419,7 @@ void fillStripledDisplay(CRGB crgb) {
 	BMP* bmp = BMP_Create(STRIPLED_W, STRIPLED_H, 24);
 	fillBitmap(bmp, 0, 0, STRIPLED_W, STRIPLED_H, crgb);
 	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
+	BMP_Free( bmp );
 }
 
 void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
@@ -461,7 +462,7 @@ void displayBitmapFile(String path) {
 	if (bmp == NULL)
 		return;
 	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
-	free( bmp );
+	BMP_Free( bmp );
 }
 
 void displayTextBitmap(String text, CRGB bg, CRGB fg, int align) {
@@ -475,7 +476,7 @@ void displayTextBitmap(String text, CRGB bg, CRGB fg, int align) {
 		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
 		drawTextBitmap(bmp, text, fixedMedium_5x7, 0, 0, fg);
 		stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
-		free( bmp );
+		BMP_Free( bmp );
 	}
 }
 
