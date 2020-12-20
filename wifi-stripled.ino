@@ -140,7 +140,7 @@ LEDInfo ledInfos[] = {
 		2,	// D4 led
 		LOW,
 		-1,
-		450,50
+		4950,50
 	}
 };
 
