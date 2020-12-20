@@ -292,6 +292,19 @@ void updateLEDStatus(int index) {
  * Handle REST commands
  */
 
+String decodeUrl(String encoded) {
+	String decoded = "";
+	int i = 0;
+	int j = encoded.indexOf("%", i);
+	while (j >= 0) {
+		decoded += encoded.substring(i,j) + String((char)strtol(encoded.substring(j+1,j+3).c_str(), NULL, 16));
+		i=j+3;
+		j = encoded.indexOf("%", i);
+	}
+	decoded += encoded.substring(i);
+	return decoded;
+}
+
 bool handleSTRIPLEDRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
@@ -332,8 +345,9 @@ bool handleGRADIENTRequest(const char * req) {
 
 bool handleMSGRequest(const char * req) {
 	String strReq = req;
+	String strMsg = decodeUrl(strReq.substring(strReq.indexOf("/")+1));
 	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(strReq.substring(strReq.indexOf("/")+1), DEFAULT_FONT, CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
+	displayTextBitmap(strMsg, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
 	return true;
 }
 
