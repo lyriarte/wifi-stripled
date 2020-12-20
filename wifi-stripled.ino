@@ -147,6 +147,27 @@ LEDInfo ledInfos[] = {
 #define N_LED (sizeof(ledInfos) / sizeof(LEDInfo))
 
 
+/*
+ * MESSAGE
+ */
+ 
+typedef struct {
+	String text;
+	int align;
+	CRGB bg;
+	CRGB fg;
+	BMP* bmp;
+} MESSAGEInfo;
+
+MESSAGEInfo messageInfo = {
+	String(""),
+	ALIGN_CENTER,
+	CRGB(0,0,0),
+	CRGB(4,4,4),
+	NULL,
+};
+
+
 /* **** **** **** **** **** ****
  * Functions
  * **** **** **** **** **** ****/
@@ -239,7 +260,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
 	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(net->SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
+	displayTextBitmap(net->SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT, NULL);
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -254,7 +275,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
 		fillStripledDisplay(CRGB(0,0,0));
-		displayTextBitmap(WiFi.localIP().toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+		displayTextBitmap(WiFi.localIP().toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT, NULL);
 		net->address = WiFi.localIP();
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
@@ -266,7 +287,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 
 
 /*
- * Robot commands
+ * Blink led
  */
 
 void updateLEDStatus(int index) {
@@ -285,6 +306,20 @@ void updateLEDStatus(int index) {
 	if (ledInfos[index].blink > 0)
 		ledInfos[index].blink--;
 	digitalWrite(ledInfos[index].gpio, ledInfos[index].state);
+}
+
+
+/*
+ * Message text
+ */
+
+void updateMessageText(String text) {
+	messageInfo.text = text;
+	if (messageInfo.bmp != NULL)
+		BMP_Free(messageInfo.bmp);
+	messageInfo.bmp = newTextBitmap(messageInfo.text, DEFAULT_FONT);
+	fillStripledDisplay(messageInfo.bg);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
 }
 
 
@@ -346,8 +381,7 @@ bool handleGRADIENTRequest(const char * req) {
 bool handleMSGRequest(const char * req) {
 	String strReq = req;
 	String strMsg = decodeUrl(strReq.substring(strReq.indexOf("/")+1));
-	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(strMsg, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,4,4), ALIGN_CENTER);
+	updateMessageText(strMsg);
 	return true;
 }
 
@@ -360,7 +394,7 @@ bool handleSSIDRequest() {
 	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT);
+	displayTextBitmap(networks[i_network].SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT, NULL);
 	return true;
 }
 
@@ -368,7 +402,7 @@ bool handleIPRequest() {
 	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].address.toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT);
+	displayTextBitmap(networks[i_network].address.toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT, NULL);
 	return true;
 }
 
@@ -518,8 +552,12 @@ void displayBitmapFile(String path) {
 	BMP_Free( bmp );
 }
 
-void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align) {
-	BMP* bmp = newTextBitmap(text, font);
+void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp) {
+	bool freeBmp = false;
+	if (bmp == NULL) {
+		bmp = newTextBitmap(text, font);
+		freeBmp = true;
+	}
 	if (bmp != NULL) {
 		int i0 = 0;
 		if (align == ALIGN_CENTER)
@@ -529,7 +567,8 @@ void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align) {
 		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
 		drawTextBitmap(bmp, text, font, 0, 0, fg);
 		stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
-		BMP_Free( bmp );
+		if (freeBmp)
+			BMP_Free( bmp );
 	}
 }
 
@@ -563,7 +602,7 @@ void delayedWifiClientStop(int start_ms) {
 
 void loop() {
 	int start_loop_ms;
-	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER);
+	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, NULL);
 	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
