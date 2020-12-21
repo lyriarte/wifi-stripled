@@ -322,6 +322,23 @@ void updateMessageText(String text) {
 	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
 }
 
+void updateMessageAlign(int align) {
+	messageInfo.align = align;
+	fillStripledDisplay(messageInfo.bg);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+}
+
+void updateMessageBg(CRGB bg) {
+	messageInfo.bg = bg;
+	fillStripledDisplay(messageInfo.bg);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+}
+
+void updateMessageFg(CRGB fg) {
+	messageInfo.fg = fg;
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+}
+
 
 /*
  * Handle REST commands
@@ -385,6 +402,33 @@ bool handleMSGRequest(const char * req) {
 	return true;
 }
 
+bool handleALIGNRequest(const char * req) {
+	String strReq = req;
+	if (strReq == "CENTER")
+		updateMessageAlign(ALIGN_CENTER);
+	else if (strReq == "LEFT")
+		updateMessageAlign(ALIGN_LEFT);
+	else if (strReq == "RIGHT")
+		updateMessageAlign(ALIGN_RIGHT);
+	else
+		return false;
+	return true;
+}
+
+bool handleBGRequest(const char * req) {
+	String strReq = req;
+	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	updateMessageBg(CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF));
+	return true;
+}
+
+bool handleFGRequest(const char * req) {
+	String strReq = req;
+	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	updateMessageFg(CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF));
+	return true;
+}
+
 bool handleSPLASHSCREENRequest() {
 	displayBitmapFile(SPLASH_SCREEN_FILE);
 	return true;
@@ -444,6 +488,12 @@ bool handleHttpRequest(const char * req) {
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("MSG/"))
 		result = handleMSGRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("ALIGN/"))
+		result = handleALIGNRequest(strReq.substring(6).c_str());
+	else if (strReq.startsWith("BG/"))
+		result = handleBGRequest(strReq.substring(3).c_str());
+	else if (strReq.startsWith("FG/"))
+		result = handleFGRequest(strReq.substring(3).c_str());
 	else if (strReq.startsWith("SPLASHSCREEN"))
 		result = handleSPLASHSCREENRequest();
 	else if (strReq.startsWith("SSID"))
