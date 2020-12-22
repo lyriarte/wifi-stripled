@@ -38,6 +38,8 @@
 #define SPLASH_SCREEN_FILE "/test.bmp"
 #define SPLASH_SCREEN_DELAY_MS 500
 
+#define MSG_SCROLL_MS 150
+
 /* **** **** **** **** **** ****
  * Global variables
  * **** **** **** **** **** ****/
@@ -152,6 +154,7 @@ LEDInfo ledInfos[] = {
  */
  
 typedef struct {
+	POLLInfo pollInfo;
 	String text;
 	int align;
 	CRGB bg;
@@ -161,6 +164,7 @@ typedef struct {
 } MESSAGEInfo;
 
 MESSAGEInfo messageInfo = {
+	{0, MSG_SCROLL_MS},
 	String(""),
 	ALIGN_CENTER,
 	CRGB(0,0,0),
@@ -184,7 +188,7 @@ void setup() {
 	displaySplashScreen();
 	wifiMacInit();
 	BMP* bmp = newTextBitmap(hostnameSSID, DEFAULT_FONT);
-	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp);
+	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
 	BMP_Free(bmp);
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
@@ -322,11 +326,20 @@ void updateLEDStatus(int index) {
  * Message text
  */
 
+void updateMessageScroll() {
+	if (messageInfo.bmp == NULL || BMP_GetWidth(messageInfo.bmp) <= STRIPLED_W || !updatePollInfo(&(messageInfo.pollInfo)))
+		return;
+	messageInfo.offset = (messageInfo.offset + 1) % BMP_GetWidth(messageInfo.bmp);
+	fillStripledDisplay(messageInfo.bg);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);	
+}
+
 void updateMessageText(String text) {
 	messageInfo.text = text;
 	if (messageInfo.bmp != NULL)
 		BMP_Free(messageInfo.bmp);
 	messageInfo.bmp = newTextBitmap(messageInfo.text, DEFAULT_FONT);
+	messageInfo.offset = 0;
 	fillStripledDisplay(messageInfo.bg);
 	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
 }
@@ -574,8 +587,8 @@ void fillStripledDisplay(CRGB crgb) {
 
 void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
 	int i=i0, ix, iy, w, h;
-	w = min(min((int)BMP_GetWidth(bmp),STRIPLED_W),ox+dx);
-	h = min(min((int)BMP_GetHeight(bmp),STRIPLED_H),oy+dy);
+	w = min((int)BMP_GetWidth(bmp),ox+dx);
+	h = min((int)BMP_GetHeight(bmp),oy+dy);
 	byte r,g,b;
 	for (int y=0; y<STRIPLED_H; y++) {
 	  iy = y+oy;
@@ -626,8 +639,6 @@ void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, B
 	fillBitmap(bmp, 0, 0, width, height, bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
 	stripledBitmapBlit(bmp, i0, offset, 0, width, height);
-	if (freeBmp)
-		BMP_Free( bmp );
 }
 
 /* 
@@ -639,6 +650,7 @@ void updateStatus() {
 	int deviceIndex;
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 		updateLEDStatus(deviceIndex);
+	updateMessageScroll();
 }
 
 void delayWithUpdateStatus(int delay_ms) {
