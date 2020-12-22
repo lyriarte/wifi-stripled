@@ -36,7 +36,7 @@
 #define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
 
 #define SPLASH_SCREEN_FILE "/test.bmp"
-#define SPLASH_SCREEN_DELAY_MS 500
+#define SPLASH_SCREEN_DELAY_MS 1000
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -181,6 +181,9 @@ void setup() {
 	SPIFFS.begin();
 	displaySplashScreen();
 	wifiMacInit();
+	BMP* bmp = newTextBitmap(hostnameSSID, DEFAULT_FONT);
+	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp);
+	BMP_Free(bmp);
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
@@ -188,6 +191,12 @@ void setup() {
 void displaySplashScreen() {
 	displayBitmapFile(SPLASH_SCREEN_FILE);
 	FastLED.delay(SPLASH_SCREEN_DELAY_MS);
+}
+
+void setMessageDefaults() {
+	messageInfo.align = ALIGN_CENTER;
+	messageInfo.bg = CRGB(0,0,0);
+	messageInfo.fg = CRGB(4,4,4);
 }
 
 /*
@@ -259,8 +268,7 @@ bool wifiConnect(int retry) {
 bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
-	fillStripledDisplay(CRGB(0,0,0));
-	displayTextBitmap(net->SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT, NULL);
+	handleSSIDRequest();
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -274,9 +282,8 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	if (wifiStatus == WL_CONNECTED) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
-		fillStripledDisplay(CRGB(0,0,0));
-		displayTextBitmap(WiFi.localIP().toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT, NULL);
 		net->address = WiFi.localIP();
+		handleIPRequest();
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
 			Serial.println(hostnameSSID);
@@ -435,18 +442,22 @@ bool handleSPLASHSCREENRequest() {
 }
 
 bool handleSSIDRequest() {
-	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].SSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(8,0,16), ALIGN_LEFT, NULL);
+	messageInfo.align = ALIGN_LEFT;
+	messageInfo.bg = CRGB(0,0,0);
+	messageInfo.fg = CRGB(8,0,16);
+	updateMessageText(networks[i_network].SSID);
 	return true;
 }
 
 bool handleIPRequest() {
-	fillStripledDisplay(CRGB(0,0,0));
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
-	displayTextBitmap(networks[i_network].address.toString(), DEFAULT_FONT, CRGB(0,0,0), CRGB(0,8,16), ALIGN_LEFT, NULL);
+	messageInfo.align = ALIGN_LEFT;
+	messageInfo.bg = CRGB(0,0,0);
+	messageInfo.fg = CRGB(0,8,16);
+	updateMessageText(networks[i_network].address.toString());
 	return true;
 }
 
@@ -603,23 +614,14 @@ void displayBitmapFile(String path) {
 }
 
 void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp) {
-	bool freeBmp = false;
-	if (bmp == NULL) {
-		bmp = newTextBitmap(text, font);
-		freeBmp = true;
-	}
-	if (bmp != NULL) {
-		int i0 = 0;
-		if (align == ALIGN_CENTER)
-			i0 = (STRIPLED_W-BMP_GetWidth(bmp))/2;
-		else if (align == ALIGN_RIGHT)
-			i0 = (STRIPLED_W-BMP_GetWidth(bmp));
-		fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
-		drawTextBitmap(bmp, text, font, 0, 0, fg);
-		stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
-		if (freeBmp)
-			BMP_Free( bmp );
-	}
+	int i0 = 0;
+	if (align == ALIGN_CENTER)
+		i0 = (STRIPLED_W-BMP_GetWidth(bmp))/2;
+	else if (align == ALIGN_RIGHT)
+		i0 = (STRIPLED_W-BMP_GetWidth(bmp));
+	fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
+	drawTextBitmap(bmp, text, font, 0, 0, fg);
+	stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
 }
 
 /* 
@@ -652,10 +654,10 @@ void delayedWifiClientStop(int start_ms) {
 
 void loop() {
 	int start_loop_ms;
-	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, NULL);
 	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
+	setMessageDefaults();
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
 	while (wifiStatus == WL_CONNECTED) {
