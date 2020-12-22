@@ -157,6 +157,7 @@ typedef struct {
 	CRGB bg;
 	CRGB fg;
 	BMP* bmp;
+	int offset;
 } MESSAGEInfo;
 
 MESSAGEInfo messageInfo = {
@@ -165,6 +166,7 @@ MESSAGEInfo messageInfo = {
 	CRGB(0,0,0),
 	CRGB(4,4,4),
 	NULL,
+	0
 };
 
 
@@ -326,24 +328,24 @@ void updateMessageText(String text) {
 		BMP_Free(messageInfo.bmp);
 	messageInfo.bmp = newTextBitmap(messageInfo.text, DEFAULT_FONT);
 	fillStripledDisplay(messageInfo.bg);
-	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
 }
 
 void updateMessageAlign(int align) {
 	messageInfo.align = align;
 	fillStripledDisplay(messageInfo.bg);
-	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
 }
 
 void updateMessageBg(CRGB bg) {
 	messageInfo.bg = bg;
 	fillStripledDisplay(messageInfo.bg);
-	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
 }
 
 void updateMessageFg(CRGB fg) {
 	messageInfo.fg = fg;
-	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp);
+	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
 }
 
 
@@ -613,7 +615,7 @@ void displayBitmapFile(String path) {
 	BMP_Free( bmp );
 }
 
-void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp) {
+void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp, int offset) {
 	int i0 = 0;
 	int width = min((int)BMP_GetWidth(bmp),STRIPLED_W);
 	int height = min((int)BMP_GetHeight(bmp),STRIPLED_H);
@@ -623,7 +625,9 @@ void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, B
 		i0 = (STRIPLED_W-width);
 	fillBitmap(bmp, 0, 0, width, height, bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
-	stripledBitmapBlit(bmp, i0, 0, 0, width, height);
+	stripledBitmapBlit(bmp, i0, offset, 0, width, height);
+	if (freeBmp)
+		BMP_Free( bmp );
 }
 
 /* 
