@@ -36,7 +36,7 @@
 #define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
 
 #define SPLASH_SCREEN_FILE "/test.bmp"
-#define SPLASH_SCREEN_DELAY_MS 1000
+#define SPLASH_SCREEN_DELAY_MS 500
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -615,13 +615,15 @@ void displayBitmapFile(String path) {
 
 void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp) {
 	int i0 = 0;
+	int width = min((int)BMP_GetWidth(bmp),STRIPLED_W);
+	int height = min((int)BMP_GetHeight(bmp),STRIPLED_H);
 	if (align == ALIGN_CENTER)
-		i0 = (STRIPLED_W-BMP_GetWidth(bmp))/2;
+		i0 = (STRIPLED_W-width)/2;
 	else if (align == ALIGN_RIGHT)
-		i0 = (STRIPLED_W-BMP_GetWidth(bmp));
-	fillBitmap(bmp, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp), bg);
+		i0 = (STRIPLED_W-width);
+	fillBitmap(bmp, 0, 0, width, height, bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
-	stripledBitmapBlit(bmp, i0, 0, 0, BMP_GetWidth(bmp), BMP_GetHeight(bmp));
+	stripledBitmapBlit(bmp, i0, 0, 0, width, height);
 }
 
 /* 
