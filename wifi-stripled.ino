@@ -639,7 +639,7 @@ void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, B
 		i0 = (STRIPLED_W-width)/2;
 	else if (align == ALIGN_RIGHT)
 		i0 = (STRIPLED_W-width);
-	fillBitmap(bmp, 0, 0, width, height, bg);
+	fillBitmap(bmp, 0, 0, (int)BMP_GetWidth(bmp), (int)BMP_GetHeight(bmp), bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
 	stripledBitmapBlit(bmp, i0, offset, 0, width, height);
 }
