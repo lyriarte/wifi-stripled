@@ -38,6 +38,7 @@
 #define SPLASH_SCREEN_FILE "/test.bmp"
 #define SPLASH_SCREEN_DELAY_MS 500
 
+#define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 150
 
 /* **** **** **** **** **** ****
@@ -342,6 +343,8 @@ void updateMessageText(String text) {
 	messageInfo.offset = 0;
 	fillStripledDisplay(messageInfo.bg);
 	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
+	if (BMP_GetWidth(messageInfo.bmp) > STRIPLED_W)
+		FastLED.delay(MSG_SCROLL_START_MS);
 }
 
 void updateMessageAlign(int align) {
