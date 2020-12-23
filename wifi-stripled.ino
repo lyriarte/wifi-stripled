@@ -650,6 +650,8 @@ void displayBitmapFile(String path) {
 }
 
 void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp, int offset) {
+	if (bmp == NULL)
+		return;
 	int i0 = 0;
 	int width = min((int)BMP_GetWidth(bmp),STRIPLED_W);
 	int height = min((int)BMP_GetHeight(bmp),STRIPLED_H);
