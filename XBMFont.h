@@ -1,9 +1,6 @@
 #ifndef XBMFont_H
 #define XBMFont_H
 
-#define XBMFont_min_printable 32
-#define XBMFont_max_printable 127
-
 class XBMFont {
 
 	public:

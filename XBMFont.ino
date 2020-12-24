@@ -20,9 +20,11 @@ unsigned int XBMFont::getHeight() {
 
 unsigned char * XBMFont::getBitmap(char c) {
 	unsigned int i = (unsigned int) c;
-	if (i < XBMFont_min_printable || i > XBMFont_max_printable)
-		i = XBMFont_max_printable;
-	return this->chars[i - XBMFont_min_printable];
+	if (i >= 32 && i <= 127)
+		return this->chars[i - 32]; // [0..95]
+	if (i >= 224 && i <= 255)
+		return this->chars[i - 128]; // [96..127]
+	return this->chars[95]; // 127-32
 }
 
 

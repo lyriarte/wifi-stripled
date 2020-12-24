@@ -1,3 +1,7 @@
+/*
+ * 32..127 
+ */
+
 #define space_FixedMedium_width 5
 #define space_FixedMedium_height 7
 static unsigned char space_FixedMedium_bits[] = {
@@ -1151,11 +1155,375 @@ static unsigned char delete_FixedMedium_bits[] = {
 };
 
 
+/*
+ * 224..255
+ */
+
+#define agrave_FixedMedium_width 5
+#define agrave_FixedMedium_height 7
+static unsigned char agrave_FixedMedium_bits[] = {
+  0x02, 
+  0x04, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define aacute_FixedMedium_width 5
+#define aacute_FixedMedium_height 7
+static unsigned char aacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define acircumflex_FixedMedium_width 5
+#define acircumflex_FixedMedium_height 7
+static unsigned char acircumflex_FixedMedium_bits[] = {
+  0x04, 
+  0x0a, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define atilde_FixedMedium_width 5
+#define atilde_FixedMedium_height 7
+static unsigned char atilde_FixedMedium_bits[] = {
+  0x0a, 
+  0x05, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define adieresis_FixedMedium_width 5
+#define adieresis_FixedMedium_height 7
+static unsigned char adieresis_FixedMedium_bits[] = {
+  0x0a, 
+  0x00, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define aring_FixedMedium_width 5
+#define aring_FixedMedium_height 7
+static unsigned char aring_FixedMedium_bits[] = {
+  0x06, 
+  0x06, 
+  0x0e, 
+  0x09, 
+  0x0d, 
+  0x0a, 
+  0x00
+};
+#define ae_FixedMedium_width 5
+#define ae_FixedMedium_height 7
+static unsigned char ae_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x0e, 
+  0x0d, 
+  0x05, 
+  0x0e, 
+  0x00
+};
+#define ccedilla_FixedMedium_width 5
+#define ccedilla_FixedMedium_height 7
+static unsigned char ccedilla_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x0c, 
+  0x02, 
+  0x02, 
+  0x0c, 
+  0x04
+};
+#define egrave_FixedMedium_width 5
+#define egrave_FixedMedium_height 7
+static unsigned char egrave_FixedMedium_bits[] = {
+  0x02, 
+  0x04, 
+  0x06, 
+  0x0d, 
+  0x03, 
+  0x06, 
+  0x00
+};
+#define eacute_FixedMedium_width 5
+#define eacute_FixedMedium_height 7
+static unsigned char eacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x06, 
+  0x0d, 
+  0x03, 
+  0x06, 
+  0x00
+};
+#define ecircumflex_FixedMedium_width 5
+#define ecircumflex_FixedMedium_height 7
+static unsigned char ecircumflex_FixedMedium_bits[] = {
+  0x02, 
+  0x05, 
+  0x06, 
+  0x0d, 
+  0x03, 
+  0x06, 
+  0x00
+};
+#define edieresis_FixedMedium_width 5
+#define edieresis_FixedMedium_height 7
+static unsigned char edieresis_FixedMedium_bits[] = {
+  0x05, 
+  0x00, 
+  0x06, 
+  0x0d, 
+  0x03, 
+  0x06, 
+  0x00
+};
+#define igrave_FixedMedium_width 5
+#define igrave_FixedMedium_height 7
+static unsigned char igrave_FixedMedium_bits[] = {
+  0x02, 
+  0x04, 
+  0x06, 
+  0x04, 
+  0x04, 
+  0x0e, 
+  0x00
+};
+#define iacute_FixedMedium_width 5
+#define iacute_FixedMedium_height 7
+static unsigned char iacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x06, 
+  0x04, 
+  0x04, 
+  0x0e, 
+  0x00
+};
+#define icircumflex_FixedMedium_width 5
+#define icircumflex_FixedMedium_height 7
+static unsigned char icircumflex_FixedMedium_bits[] = {
+  0x04, 
+  0x0a, 
+  0x06, 
+  0x04, 
+  0x04, 
+  0x0e, 
+  0x00
+};
+#define idieresis_FixedMedium_width 5
+#define idieresis_FixedMedium_height 7
+static unsigned char idieresis_FixedMedium_bits[] = {
+  0x0a, 
+  0x00, 
+  0x06, 
+  0x04, 
+  0x04, 
+  0x0e, 
+  0x00
+};
+#define eth_FixedMedium_width 5
+#define eth_FixedMedium_height 7
+static unsigned char eth_FixedMedium_bits[] = {
+  0x02, 
+  0x0c, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06,
+  0x00
+};
+#define ntilde_FixedMedium_width 5
+#define ntilde_FixedMedium_height 7
+static unsigned char ntilde_FixedMedium_bits[] = {
+  0x0a, 
+  0x05, 
+  0x07, 
+  0x09, 
+  0x09, 
+  0x09,
+  0x00
+};
+#define ograve_FixedMedium_width 5
+#define ograve_FixedMedium_height 7
+static unsigned char ograve_FixedMedium_bits[] = {
+  0x02, 
+  0x04, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};
+#define oacute_FixedMedium_width 5
+#define oacute_FixedMedium_height 7
+static unsigned char oacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};
+#define ocircumflex_FixedMedium_width 5
+#define ocircumflex_FixedMedium_height 7
+static unsigned char ocircumflex_FixedMedium_bits[] = {
+  0x06, 
+  0x00, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};
+#define otilde_FixedMedium_width 5
+#define otilde_FixedMedium_height 7
+static unsigned char otilde_FixedMedium_bits[] = {
+  0x0a, 
+  0x05, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};
+#define odieresis_FixedMedium_width 5
+#define odieresis_FixedMedium_height 7
+static unsigned char odieresis_FixedMedium_bits[] = {
+  0x0a, 
+  0x00, 
+  0x06, 
+  0x09, 
+  0x09, 
+  0x06, 
+  0x00
+};
+#define divide_FixedMedium_width 5
+#define divide_FixedMedium_height 7
+static unsigned char divide_FixedMedium_bits[] = {
+  0x00, 
+  0x06, 
+  0x00, 
+  0x0f, 
+  0x00, 
+  0x06, 
+  0x00
+};
+#define oslash_FixedMedium_width 5
+#define oslash_FixedMedium_height 7
+static unsigned char oslash_FixedMedium_bits[] = {
+  0x00, 
+  0x00, 
+  0x0e, 
+  0x0d, 
+  0x0b, 
+  0x07, 
+  0x00
+};
+#define ugrave_FixedMedium_width 5
+#define ugrave_FixedMedium_height 7
+static unsigned char ugrave_FixedMedium_bits[] = {
+  0x02, 
+  0x04, 
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0e, 
+  0x00
+};
+#define uacute_FixedMedium_width 5
+#define uacute_FixedMedium_height 7
+static unsigned char uacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0e, 
+  0x00
+};
+#define ucircumflex_FixedMedium_width 5
+#define ucircumflex_FixedMedium_height 7
+static unsigned char ucircumflex_FixedMedium_bits[] = {
+  0x06, 
+  0x00, 
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0e, 
+  0x00
+};
+#define udieresis_FixedMedium_width 5
+#define udieresis_FixedMedium_height 7
+static unsigned char udieresis_FixedMedium_bits[] = {
+  0x0a, 
+  0x00, 
+  0x09, 
+  0x09, 
+  0x09, 
+  0x0e, 
+  0x00
+};
+#define yacute_FixedMedium_width 5
+#define yacute_FixedMedium_height 7
+static unsigned char yacute_FixedMedium_bits[] = {
+  0x04, 
+  0x02, 
+  0x09, 
+  0x09, 
+  0x0a, 
+  0x04, 
+  0x02
+};
+#define thorn_FixedMedium_width 5
+#define thorn_FixedMedium_height 7
+static unsigned char thorn_FixedMedium_bits[] = {
+  0x00, 
+  0x01, 
+  0x07, 
+  0x09, 
+  0x09, 
+  0x07, 
+  0x01
+};
+#define ydieresis_FixedMedium_width 5
+#define ydieresis_FixedMedium_height 7
+static unsigned char ydieresis_FixedMedium_bits[] = {
+  0x0a, 
+  0x00, 
+  0x09, 
+  0x09, 
+  0x0a, 
+  0x04, 
+  0x02
+};
+
+
 static unsigned char * font_FixedMedium_5x7[] = {
+/* 32..127 */
 space_FixedMedium_bits ,exclam_FixedMedium_bits ,quotedbl_FixedMedium_bits ,numbersign_FixedMedium_bits ,dollar_FixedMedium_bits ,percent_FixedMedium_bits ,ampersand_FixedMedium_bits ,quotesingle_FixedMedium_bits ,parenleft_FixedMedium_bits ,parenright_FixedMedium_bits ,asterisk_FixedMedium_bits ,plus_FixedMedium_bits ,comma_FixedMedium_bits ,hyphen_FixedMedium_bits ,period_FixedMedium_bits ,slash_FixedMedium_bits ,zero_FixedMedium_bits ,one_FixedMedium_bits ,two_FixedMedium_bits ,three_FixedMedium_bits ,four_FixedMedium_bits ,five_FixedMedium_bits ,six_FixedMedium_bits ,seven_FixedMedium_bits ,eight_FixedMedium_bits ,nine_FixedMedium_bits ,colon_FixedMedium_bits ,semicolon_FixedMedium_bits ,less_FixedMedium_bits ,equal_FixedMedium_bits ,greater_FixedMedium_bits ,question_FixedMedium_bits ,at_FixedMedium_bits ,A_FixedMedium_bits ,B_FixedMedium_bits ,C_FixedMedium_bits ,D_FixedMedium_bits ,E_FixedMedium_bits ,F_FixedMedium_bits ,G_FixedMedium_bits ,H_FixedMedium_bits ,I_FixedMedium_bits ,J_FixedMedium_bits ,K_FixedMedium_bits ,L_FixedMedium_bits ,M_FixedMedium_bits ,N_FixedMedium_bits ,O_FixedMedium_bits ,P_FixedMedium_bits ,Q_FixedMedium_bits ,R_FixedMedium_bits ,S_FixedMedium_bits ,T_FixedMedium_bits ,U_FixedMedium_bits ,V_FixedMedium_bits ,W_FixedMedium_bits ,X_FixedMedium_bits ,Y_FixedMedium_bits ,Z_FixedMedium_bits ,bracketleft_FixedMedium_bits ,backslash_FixedMedium_bits ,bracketright_FixedMedium_bits ,asciicircum_FixedMedium_bits ,underscore_FixedMedium_bits ,grave_FixedMedium_bits ,a_FixedMedium_bits ,b_FixedMedium_bits ,c_FixedMedium_bits ,d_FixedMedium_bits ,e_FixedMedium_bits ,f_FixedMedium_bits ,g_FixedMedium_bits ,h_FixedMedium_bits ,i_FixedMedium_bits ,j_FixedMedium_bits ,k_FixedMedium_bits ,l_FixedMedium_bits ,m_FixedMedium_bits ,n_FixedMedium_bits ,o_FixedMedium_bits ,p_FixedMedium_bits ,q_FixedMedium_bits ,r_FixedMedium_bits ,s_FixedMedium_bits ,t_FixedMedium_bits ,u_FixedMedium_bits ,v_FixedMedium_bits ,w_FixedMedium_bits ,x_FixedMedium_bits ,y_FixedMedium_bits ,z_FixedMedium_bits ,braceleft_FixedMedium_bits ,bar_FixedMedium_bits ,braceright_FixedMedium_bits ,asciitilde_FixedMedium_bits ,delete_FixedMedium_bits
+,
+/* 224..255 */
+agrave_FixedMedium_bits ,aacute_FixedMedium_bits ,acircumflex_FixedMedium_bits ,atilde_FixedMedium_bits ,adieresis_FixedMedium_bits ,aring_FixedMedium_bits ,ae_FixedMedium_bits ,ccedilla_FixedMedium_bits ,egrave_FixedMedium_bits ,eacute_FixedMedium_bits ,ecircumflex_FixedMedium_bits ,edieresis_FixedMedium_bits ,igrave_FixedMedium_bits ,iacute_FixedMedium_bits ,icircumflex_FixedMedium_bits ,idieresis_FixedMedium_bits ,eth_FixedMedium_bits ,ntilde_FixedMedium_bits ,ograve_FixedMedium_bits ,oacute_FixedMedium_bits ,ocircumflex_FixedMedium_bits ,otilde_FixedMedium_bits ,odieresis_FixedMedium_bits ,divide_FixedMedium_bits ,oslash_FixedMedium_bits ,ugrave_FixedMedium_bits ,uacute_FixedMedium_bits ,ucircumflex_FixedMedium_bits ,udieresis_FixedMedium_bits ,yacute_FixedMedium_bits ,thorn_FixedMedium_bits ,ydieresis_FixedMedium_bits
 };
 
 #include "XBMFont.h"
 
 XBMFont fixedMedium_5x7(5,7,font_FixedMedium_5x7);
+
+
 
