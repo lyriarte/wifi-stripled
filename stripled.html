@@ -8,6 +8,7 @@ input {width: 90%; height: 20%; font-size: 8em}
 <script>
 
 var host = window.location.host;
+var rgb
 
 function sendCommand(path) {
 	var xmlhttp = new XMLHttpRequest();
@@ -38,6 +39,25 @@ function initView() {
 	}
 }
 
+function incrementColor(elem, inc) {
+	var intVal = Math.min(Math.max(0,parseInt(document.getElementById(elem).value,16) + inc),255);
+	document.getElementById(elem).value = intVal.toString(16);
+	var rgb = ("00"+document.getElementById('RED').value).substr(-2) 
+			+ ("00"+document.getElementById('GREEN').value).substr(-2)
+			+ ("00"+document.getElementById('BLUE').value).substr(-2);
+	document.getElementById('COLOR').style.color = '#' + rgb;
+	document.getElementById('COLOR').value = rgb;
+}
+
+function updateColor(rgb) {
+	document.getElementById('RED').value = rgb.substr(0,2);
+	document.getElementById('GREEN').value = rgb.substr(2,2)
+	document.getElementById('BLUE').value = rgb.substr(4,2);
+	document.getElementById('COLOR').style.color = '#' + rgb;
+	document.getElementById('COLOR').value = rgb;
+}
+
+
 </script>
 </head>
 
@@ -45,7 +65,21 @@ function initView() {
 <body onload="initView()">
 <center>
 <input type="button" style="width:20%" value="MSG" onclick="sendCommand('/MSG/'+escape(document.getElementById('MESSAGE').value))"/>
-<input type="text" style="width:70%" id="MESSAGE"/>
+<input type="text" style="width:70%" id="MESSAGE" onchange="sendCommand('/MSG/'+escape(document.getElementById('MESSAGE').value))"/>
+<br>
+<input type="button" style="width:20%" value="BG" onclick="sendCommand('/BG/'+document.getElementById('COLOR').value)"/>
+<input type="text" style="width:50%;text-align:center" id="COLOR" value="0f0f0f" onchange="updateColor(document.getElementById('COLOR').value)"/>
+<input type="button" style="width:20%" value="FG" onclick="sendCommand('/FG/'+document.getElementById('COLOR').value)"/>
+<br>
+<input type="button" style="width:10%" value="+" onclick="incrementColor('RED', 1)">
+<input type="button" style="width:10%" value="-" onclick="incrementColor('RED',-1)"/>
+<input type="text" style="width:10%" id="RED" value="0f" onchange="incrementColor('RED',0)"/>
+<input type="button" style="width:10%" value="+" onclick="incrementColor('GREEN', 1)"/>
+<input type="button" style="width:10%" value="-" onclick="incrementColor('GREEN',-1)"/>
+<input type="text" style="width:10%" id="GREEN" value="0f" onchange="incrementColor('GREEN',0)"/>
+<input type="button" style="width:10%" value="+" onclick="incrementColor('BLUE', 1)"/>
+<input type="button" style="width:10%" value="-" onclick="incrementColor('BLUE',-1)"/>
+<input type="text" style="width:10%" id="BLUE" value="0f" onchange="incrementColor('BLUE',0)"/>
 </center>
 </body>
 </html>
