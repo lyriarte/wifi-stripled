@@ -1,0 +1,51 @@
+<html>
+
+<head>
+<title>Strip LED</title>
+<style>
+input {width: 90%; height: 20%; font-size: 8em}
+</style>
+<script>
+
+var host = window.location.host;
+
+function sendCommand(path) {
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("GET", "http://" + host + path, true);
+	xmlhttp.send();
+}
+
+
+function argsFromQueryString(queryString) {
+	var args = {};
+	if (!queryString)
+		return args;
+	var getVars = queryString.split("\&");
+	for (var i=0; i<getVars.length; i++) {
+		var varVal = getVars[i].split("\=");
+		if (varVal.length == 2)
+			args[varVal[0]] = varVal[1];
+	}
+	return args;
+}
+
+function initView() {
+	var args = argsFromQueryString(window.location.toString().split("\?")[1]);
+	if (args.host)
+		host = args.host;
+	if (args.poll) {
+		sendCommand('/LED/0/POLL/'+args.poll);
+	}
+}
+
+</script>
+</head>
+
+
+<body onload="initView()">
+<center>
+<input type="button" style="width:20%" value="MSG" onclick="sendCommand('/MSG/'+escape(document.getElementById('MESSAGE').value))"/>
+<input type="text" style="width:70%" id="MESSAGE"/>
+</center>
+</body>
+</html>
