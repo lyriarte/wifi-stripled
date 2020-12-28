@@ -39,7 +39,7 @@
 #define SPLASH_SCREEN_DELAY_MS 500
 
 #define MSG_SCROLL_START_MS 3000
-#define MSG_SCROLL_MS 150
+#define MSG_SCROLL_MS 50
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -348,7 +348,7 @@ void updateMessageScroll() {
 		return;
 	messageInfo.offset = (messageInfo.offset + 1) % BMP_GetWidth(messageInfo.bmp);
 	fillStripledDisplay(messageInfo.bg);
-	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);	
+	stripledBitmapBlit(messageInfo.bmp, 0, messageInfo.offset, 0, STRIPLED_W, STRIPLED_H);
 }
 
 void updateMessageText(String text) {
@@ -443,6 +443,10 @@ bool handleMSGRequest(const char * req) {
 	return true;
 }
 
+bool handleSCROLLRequest(const char * req) {
+	return handlePollInfoRequest(req, &(messageInfo.pollInfo));
+}
+
 bool handleALIGNRequest(const char * req) {
 	String strReq = req;
 	if (strReq == "CENTER")
@@ -535,6 +539,8 @@ bool handleHttpRequest(const char * req) {
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("MSG/"))
 		result = handleMSGRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("SCROLL/"))
+		result = handleSCROLLRequest(strReq.substring(7).c_str());
 	else if (strReq.startsWith("ALIGN/"))
 		result = handleALIGNRequest(strReq.substring(6).c_str());
 	else if (strReq.startsWith("BG/"))
