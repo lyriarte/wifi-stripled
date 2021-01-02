@@ -479,6 +479,15 @@ bool handleSPLASHSCREENRequest() {
 	return true;
 }
 
+bool handleSSIDChangeRequest(const char * req) {
+	String strReq = req;
+	int networkReq = strReq.toInt();
+	if (networkReq < 0 || networkReq >= N_NETWORKS)
+		return false;
+	i_network = networkReq;
+	return wifiNetConnect(&networks[i_network], WIFI_CONNECT_RETRY);
+}
+
 bool handleSSIDRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
@@ -549,6 +558,8 @@ bool handleHttpRequest(const char * req) {
 		result = handleFGRequest(strReq.substring(3).c_str());
 	else if (strReq.startsWith("SPLASHSCREEN"))
 		result = handleSPLASHSCREENRequest();
+	else if (strReq.startsWith("SSID/"))
+		result = handleSSIDChangeRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("SSID"))
 		result = handleSSIDRequest();
 	else if (strReq.startsWith("IP"))
