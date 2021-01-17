@@ -31,8 +31,8 @@
 #define MINIMUM_UPDATE_MS 2
 
 #define STRIPLED_GPIO	5
-#define STRIPLED_W    71
-#define STRIPLED_H    6
+#define STRIPLED_W    72
+#define STRIPLED_H    1
 #define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
 
 #define SPLASH_SCREEN_FILE "/test.bmp"
@@ -74,15 +74,8 @@ typedef struct {
 
 wifiNetInfo networks[] = {
   {
-    "network1",
-    "password",
-    IPAddress(192,168,0,2),
-    IPAddress(192,168,0,1),
-    IPAddress(255,255,255,0)
-  },
-  {
-    "network2",
-    "password",
+    "MouneBox",
+    "deadf0c0ff",
     IPAddress(0,0,0,0),
     IPAddress(0,0,0,0),
     IPAddress(0,0,0,0)
@@ -141,9 +134,9 @@ LEDInfo ledInfos[] = {
 	{
 		{0, 0},
 		2,	// D4 led
-		LOW,
-		-1,
-		4950,50
+		HIGH,
+		0,
+		59950,50
 	}
 };
 
@@ -186,11 +179,7 @@ void setup() {
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO>(leds, N_STRIPLED);
 	Serial.begin(BPS_HOST);
 	SPIFFS.begin();
-	displaySplashScreen();
 	wifiMacInit();
-	BMP* bmp = newTextBitmap(hostnameSSID, DEFAULT_FONT);
-	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
-	BMP_Free(bmp);
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
@@ -275,7 +264,6 @@ bool wifiConnect(int retry) {
 bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
-	handleSSIDRequest();
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -290,7 +278,6 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
 		net->address = WiFi.localIP();
-		handleIPRequest();
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
 			Serial.println(hostnameSSID);
