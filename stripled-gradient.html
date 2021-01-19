@@ -19,7 +19,9 @@ var rgbmin = "000000";
 var rgbmax = "000000";
 
 
-function sendCommand(path) {
+function sendCommand(host, path) {
+	console.log(host);
+	console.log(path);
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("GET", "http://" + host + path, true);
 	xmlhttp.send();
@@ -65,11 +67,14 @@ function rgbSliders(relem,gelem,belem) {
 }
 
 function updateColor() {
-	sendCommand("/GRADIENT" 
+	sendCommand(host, "/GRADIENT" 
 		+ "/" + ledmin + "/" + rgbSliders("rlSlider","glSlider","blSlider")
 		+ "/" + ledmax + "/" + rgbSliders("rrSlider","grSlider","brSlider"));
 }
 
+function toggleRandom() {
+	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0"));
+}
 
 </script>
 </head>
@@ -87,6 +92,27 @@ function updateColor() {
   <main class="mdl-grid">
 
   <div class="mdl-grid mdl-cell mdl-cell--12-col">
+
+  <div class="mdl-cell mdl-cell--3-col">
+  <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="randomCheck" id="switchRandomCheck">
+    <input type="checkbox" id="randomCheck" class="mdl-switch__input" onchange="toggleRandom()">
+    <span class="mdl-switch__label">Random</span>
+  </label>
+  </div>
+
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="sendCommand('192.168.0.114','/GRADIENT/0/FFA080/71/FFFFFF')"/>
+  </div>
+  
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="sendCommand('192.168.0.114','/GRADIENT/0/A03010/71/804010')"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="sendCommand('192.168.0.114','/GRADIENT/0/000000/71/000000')"/>
+  </div>
+
+
 
   <div class="mdl-cell mdl-cell--6-col">
 	  <label class="mdl-slider__label" for="rlSlider">Rouge</label>
