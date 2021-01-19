@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Strip LED gradient</title>
+
+<link rel="stylesheet" type="text/css" href="lib/mdl/material.min.css">
+<script src="lib/mdl/material.min.js"></script>
+
+<script type="text/javascript">
+
+var host = window.location.host;
+var ledmin = "0";
+var ledmax = "29";
+var rgbmin = "000000";
+var rgbmax = "000000";
+
+
+function sendCommand(path) {
+	var xmlhttp = new XMLHttpRequest();
+	xmlhttp.open("GET", "http://" + host + path, true);
+	xmlhttp.send();
+}
+
+
+function argsFromQueryString(queryString) {
+	var args = {};
+	if (!queryString)
+		return args;
+	var getVars = queryString.split("\&");
+	for (var i=0; i<getVars.length; i++) {
+		var varVal = getVars[i].split("\=");
+		if (varVal.length == 2)
+			args[varVal[0]] = varVal[1];
+	}
+	return args;
+}
+
+function initView() {
+	var args = argsFromQueryString(window.location.toString().split("\?")[1]);
+	if (args.host)
+		host = args.host;
+	if (args.ledmin)
+		ledmin = args.ledmin;
+	if (args.ledmax)
+		ledmax = args.ledmax;
+}
+
+function rgbColor(r,g,b) {
+	return (
+		("00" + r.toString(16)).substr(-2) + 
+		("00" + g.toString(16)).substr(-2) + 
+		("00" + b.toString(16)).substr(-2) );
+}
+
+function rgbSliders(relem,gelem,belem) {
+	return rgbColor(
+		parseInt(document.getElementById(relem).value),
+		parseInt(document.getElementById(gelem).value),
+		parseInt(document.getElementById(belem).value)
+	);
+}
+
+function updateColor() {
+	sendCommand("/GRADIENT" 
+		+ "/" + ledmin + "/" + rgbSliders("rlSlider","glSlider","blSlider")
+		+ "/" + ledmax + "/" + rgbSliders("rrSlider","grSlider","brSlider"));
+}
+
+
+</script>
+</head>
+
+
+<body onload="initView()">
+
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title"><a href="/">Strip LED gradient</a></span>
+    </div>
+  </header>
+
+  <main class="mdl-grid">
+
+  <div class="mdl-grid mdl-cell mdl-cell--12-col">
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="rlSlider">Rouge</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="rlSlider" onchange="updateColor()"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="rrSlider">Rouge</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="rrSlider" onchange="updateColor()"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="glSlider">Vert</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="glSlider" onchange="updateColor()"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="grSlider">Vert</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="grSlider" onchange="updateColor()"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="blSlider">Bleu</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="blSlider" onchange="updateColor()"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--6-col">
+	  <label class="mdl-slider__label" for="brSlider">Bleu</label>
+	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="brSlider" onchange="updateColor()"/>
+  </div>
+  </div>
+
+  </main>
+</div>
+
+</body>
+</html>
