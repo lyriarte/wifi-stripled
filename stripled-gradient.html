@@ -68,8 +68,8 @@ function rgbSliders(relem,gelem,belem) {
 
 function updateColor() {
 	sendCommand(host, "/GRADIENT" 
-		+ "/" + ledmin + "/" + rgbSliders("rlSlider","glSlider","blSlider")
-		+ "/" + ledmax + "/" + rgbSliders("rrSlider","grSlider","brSlider"));
+		+ "/" + ledmin + "/" + rgbSliders("rrSlider","grSlider","brSlider")
+		+ "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
 function toggleRandom() {
