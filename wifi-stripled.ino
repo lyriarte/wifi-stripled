@@ -30,6 +30,8 @@
 #define MAIN_LOOP_POLL_MS 10
 #define MINIMUM_UPDATE_MS 2
 
+#define STRIPLED_SCREEN
+
 #define STRIPLED_GPIO	5
 #define STRIPLED_W    71
 #define STRIPLED_H    6
@@ -186,11 +188,15 @@ void setup() {
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO>(leds, N_STRIPLED);
 	Serial.begin(BPS_HOST);
 	SPIFFS.begin();
+#ifdef STRIPLED_SCREEN
 	displaySplashScreen();
+#endif
 	wifiMacInit();
+#ifdef STRIPLED_SCREEN
 	BMP* bmp = newTextBitmap(hostnameSSID, DEFAULT_FONT);
 	displayTextBitmap(hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
 	BMP_Free(bmp);
+#endif
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
@@ -275,7 +281,9 @@ bool wifiConnect(int retry) {
 bool wifiNetConnect(wifiNetInfo *net, int retry) {
 	Serial.print("Connecting to: ");
 	Serial.println(net->SSID);
+#ifdef STRIPLED_SCREEN
 	handleSSIDRequest();
+#endif
 	WiFi.config(net->address, net->gateway, net->netmask);  
 	wifiStatus = WiFi.begin(net->SSID, net->passwd);
 	Serial.print("trying..");
@@ -290,7 +298,9 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		Serial.print("WiFi client IP Address: ");
 		Serial.println(WiFi.localIP());
 		net->address = WiFi.localIP();
+#ifdef STRIPLED_SCREEN
 		handleIPRequest();
+#endif
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
 			Serial.println(hostnameSSID);
