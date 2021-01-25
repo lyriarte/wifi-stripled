@@ -8,20 +8,24 @@
 <title>Strip LED gradient</title>
 
 <link rel="stylesheet" type="text/css" href="lib/mdl/material.min.css">
+<style>
+</style>
 <script src="lib/mdl/material.min.js"></script>
 
 <script type="text/javascript">
 
-var host = window.location.host;
+var host = "192.168.16.113";
 var ledmin = "0";
-var ledmax = "29";
+var ledmax = "425";
 var rgbmin = "000000";
 var rgbmax = "000000";
 
 
-function sendCommand(path) {
+function sendCommand(host, path) {
+	var cmd = "http://" + host + path;
+	document.getElementById("cmdLog").innerHTML = cmd;
 	var xmlhttp = new XMLHttpRequest();
-	xmlhttp.open("GET", "http://" + host + path, true);
+	xmlhttp.open("GET", cmd, true);
 	xmlhttp.send();
 }
 
@@ -65,11 +69,19 @@ function rgbSliders(relem,gelem,belem) {
 }
 
 function updateColor() {
-	sendCommand("/GRADIENT" 
-		+ "/" + ledmin + "/" + rgbSliders("rlSlider","glSlider","blSlider")
-		+ "/" + ledmax + "/" + rgbSliders("rrSlider","grSlider","brSlider"));
+	sendCommand(host, "/GRADIENT" 
+		+ "/" + ledmin + "/" + rgbSliders("rrSlider","grSlider","brSlider")
+		+ "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
+function toggleRandom() {
+	var nled = Number(ledmax) + 1;
+	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0") + "&host=" + host + "&nled=" + nled);
+}
+
+function gradientCommand(srcrgb,dstrgb) {
+	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
+}
 
 </script>
 </head>
@@ -87,6 +99,27 @@ function updateColor() {
   <main class="mdl-grid">
 
   <div class="mdl-grid mdl-cell mdl-cell--12-col">
+
+  <div class="mdl-cell mdl-cell--3-col">
+  <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="randomCheck" id="switchRandomCheck">
+    <input type="checkbox" id="randomCheck" class="mdl-switch__input" onchange="toggleRandom()">
+    <span class="mdl-switch__label">Random</span>
+  </label>
+  </div>
+
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand('FFA080','FFFFFF')"/>
+  </div>
+  
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand('A03010','804010')"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--3-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand('000000','000000')"/>
+  </div>
+
+
 
   <div class="mdl-cell mdl-cell--6-col">
 	  <label class="mdl-slider__label" for="rlSlider">Rouge</label>
@@ -117,7 +150,16 @@ function updateColor() {
 	  <label class="mdl-slider__label" for="brSlider">Bleu</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="brSlider" onchange="updateColor()"/>
   </div>
+
+  <div class="mdl-cell mdl-cell--12-col">
+  <div style="width:100%;height:100%" class="mdl-textfield mdl-js-textfield">
+  <pre id="cmdLog" style="width:100%;height:100%;border-style:solid;border-width:1px;overflow-x:scroll;overflow-y:scroll;background-color:#f0f0f0"></pre>
   </div>
+  </div>
+
+
+  </div>
+
 
   </main>
 </div>
