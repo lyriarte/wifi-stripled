@@ -75,7 +75,12 @@ function updateColor() {
 }
 
 function toggleRandom() {
-	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0"));
+	var nled = Number(ledmax) + 1;
+	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0") + "&host=" + host + "&nled=" + nled);
+}
+
+function gradientCommand(srcrgb,dstrgb) {
+	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
 }
 
 </script>
@@ -103,15 +108,15 @@ function toggleRandom() {
   </div>
 
   <div class="mdl-cell mdl-cell--3-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="sendCommand('192.168.0.114','/GRADIENT/0/FFA080/71/FFFFFF')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand('FFA080','FFFFFF')"/>
   </div>
   
   <div class="mdl-cell mdl-cell--3-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="sendCommand('192.168.0.114','/GRADIENT/0/A03010/71/804010')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand('A03010','804010')"/>
   </div>
 
   <div class="mdl-cell mdl-cell--3-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="sendCommand('192.168.0.114','/GRADIENT/0/000000/71/000000')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand('000000','000000')"/>
   </div>
 
 
