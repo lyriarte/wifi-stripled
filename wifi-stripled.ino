@@ -176,6 +176,26 @@ MESSAGEInfo messageInfo = {
 	0
 };
 
+/*
+ * ANIM
+ */
+ 
+ enum {
+	ANIM_NONE,
+	ANIM_ROTATE
+};
+
+typedef struct {
+	POLLInfo pollInfo;
+	int kind;
+} ANIMInfo;
+
+ANIMInfo animInfo = {
+	{0, MSG_SCROLL_MS},
+	ANIM_NONE
+};
+
+
 
 /* **** **** **** **** **** ****
  * Functions
@@ -392,6 +412,29 @@ void updateMessageFg(CRGB fg) {
 
 
 /*
+ * Animation
+ */
+
+void rotateStripledDisplay() {
+	CRGB carry = leds[0];
+	for (int i=0; i<N_STRIPLED-1; i++) {
+		leds[i] = leds[i+1];
+	}
+	leds[N_STRIPLED-1] = carry;
+}
+
+void updateAnimation() {
+	if (animInfo.kind == ANIM_NONE || !updatePollInfo(&(animInfo.pollInfo)))
+		return;
+	switch (animInfo.kind) {
+		case ANIM_ROTATE:
+			rotateStripledDisplay();
+			break;
+	}
+}
+
+
+/*
  * Handle REST commands
  */
 
@@ -444,6 +487,14 @@ bool handleGRADIENTRequest(const char * req) {
 		leds[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
 	}
   return true;
+}
+
+bool handleANIMRequest(const char * req) {
+	String strReq = req;
+	animInfo.kind = ANIM_NONE;
+	if (strReq == "ROTATE")
+		animInfo.kind = ANIM_ROTATE;
+	return true;
 }
 
 bool handleMSGRequest(const char * req) {
@@ -556,6 +607,8 @@ bool handleHttpRequest(const char * req) {
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("ANIM/"))
+		result = handleANIMRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("MSG/"))
 		result = handleMSGRequest(strReq.substring(4).c_str());
 	else if (strReq.startsWith("SCROLL/"))
@@ -701,6 +754,7 @@ void updateStatus() {
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 		updateLEDStatus(deviceIndex);
 	updateMessageScroll();
+	updateAnimation();
 }
 
 void delayWithUpdateStatus(int delay_ms) {
