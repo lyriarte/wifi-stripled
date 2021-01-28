@@ -87,6 +87,13 @@ function gradientCommand(srcrgb,dstrgb) {
 	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
 }
 
+function rainbow() {
+	sendCommand(host,'/GRADIENT/' + 0 + '/' + "200000" + '/' + Math.floor(ledmax/3) + '/' + "002000");
+	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax/3) + '/' + "002000" + '/' + Math.floor(ledmax*2/3) + '/' + "000020");
+	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000020" + '/' + ledmax + '/' + "200000");
+}
+
+
 </script>
 </head>
 
@@ -104,20 +111,24 @@ function gradientCommand(srcrgb,dstrgb) {
 
   <div class="mdl-grid mdl-cell mdl-cell--12-col">
 
-  <div class="mdl-cell mdl-cell--3-col">
+  <div class="mdl-cell mdl-cell--2-col">
   <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="randomCheck" id="switchRandomCheck">
     <input type="checkbox" id="randomCheck" class="mdl-switch__input" onchange="toggleRandom()">
     <span class="mdl-switch__label">Random</span>
   </label>
   </div>
 
-  <div class="mdl-cell mdl-cell--3-col">
+  <div class="mdl-cell mdl-cell--2-col">
   <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="rotateCheck" id="switchRotateCheck">
     <input type="checkbox" id="rotateCheck" class="mdl-switch__input" onchange="toggleRotate()">
     <span class="mdl-switch__label">Rotate</span>
   </label>
   </div>
 
+  <div class="mdl-cell mdl-cell--2-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="RAINBOW" onClick="rainbow()"/>
+  </div>
+  
   <div class="mdl-cell mdl-cell--2-col">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand('FFA080','FFFFFF')"/>
   </div>
