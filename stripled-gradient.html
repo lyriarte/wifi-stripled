@@ -79,6 +79,10 @@ function toggleRandom() {
 	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0") + "&host=" + host + "&nled=" + nled);
 }
 
+function toggleRotate() {
+	sendCommand(host, "/ANIM/" + (document.getElementById("rotateCheck").checked ? "ROTATE" : "NONE"));
+}
+
 function gradientCommand(srcrgb,dstrgb) {
 	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
 }
@@ -108,14 +112,21 @@ function gradientCommand(srcrgb,dstrgb) {
   </div>
 
   <div class="mdl-cell mdl-cell--3-col">
+  <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="rotateCheck" id="switchRotateCheck">
+    <input type="checkbox" id="rotateCheck" class="mdl-switch__input" onchange="toggleRotate()">
+    <span class="mdl-switch__label">Rotate</span>
+  </label>
+  </div>
+
+  <div class="mdl-cell mdl-cell--2-col">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand('FFA080','FFFFFF')"/>
   </div>
   
-  <div class="mdl-cell mdl-cell--3-col">
+  <div class="mdl-cell mdl-cell--2-col">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand('A03010','804010')"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--3-col">
+  <div class="mdl-cell mdl-cell--2-col">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand('000000','000000')"/>
   </div>
 
