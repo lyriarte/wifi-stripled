@@ -32,10 +32,9 @@
 
 #define STRIPLED_SCREEN
 
-#define STRIPLED_GPIO	5
-#define STRIPLED_W    71
-#define STRIPLED_H    6
-#define N_STRIPLED    (STRIPLED_W * STRIPLED_H)
+#define STRIPLED_GPIO_0	5
+#define STRIPLED_W_0    71
+#define STRIPLED_H_0    6
 
 #define SPLASH_SCREEN_FILE "/test.bmp"
 #define SPLASH_SCREEN_DELAY_MS 500
@@ -124,7 +123,28 @@ typedef struct {
  * STRIPLED
  */
  
-CRGBArray<N_STRIPLED> leds;
+typedef struct {
+	int gpio;
+	int w;
+	int h;
+	CRGB *leds;
+} STRIPLEDInfo;
+
+STRIPLEDInfo stripledInfos[] = {
+	{
+		STRIPLED_GPIO_0,
+		STRIPLED_W_0,
+		STRIPLED_H_0,
+		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*sizeof(CRGB))
+	}
+};
+
+int stripledCount(STRIPLEDInfo * stripledInfosP) {
+	return stripledInfosP->w * stripledInfosP->h;
+}
+
+#define N_STRIPLED (sizeof(stripledInfos) / sizeof(STRIPLEDInfo))
+int i_stripled = N_STRIPLED-1;
 
 /*
  * LED
@@ -205,7 +225,7 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO>(leds, N_STRIPLED);
+	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].leds, STRIPLED_W_0*STRIPLED_H_0);
 	Serial.begin(BPS_HOST);
 	SPIFFS.begin();
 #ifdef STRIPLED_SCREEN
@@ -374,11 +394,11 @@ bool handleLEDRequest(const char * req) {
  */
 
 void updateMessageScroll() {
-	if (messageInfo.bmp == NULL || BMP_GetWidth(messageInfo.bmp) <= STRIPLED_W || !updatePollInfo(&(messageInfo.pollInfo)))
+	if (messageInfo.bmp == NULL || BMP_GetWidth(messageInfo.bmp) <= stripledInfos[i_stripled].w || !updatePollInfo(&(messageInfo.pollInfo)))
 		return;
 	messageInfo.offset = (messageInfo.offset + 1) % BMP_GetWidth(messageInfo.bmp);
 	fillStripledDisplay(messageInfo.bg);
-	stripledBitmapBlit(messageInfo.bmp, 0, messageInfo.offset, 0, STRIPLED_W, STRIPLED_H);
+	stripledBitmapBlit(messageInfo.bmp, 0, messageInfo.offset, 0, stripledInfos[i_stripled].w, stripledInfos[i_stripled].h);
 }
 
 void updateMessageText(String text) {
@@ -389,7 +409,7 @@ void updateMessageText(String text) {
 	messageInfo.offset = 0;
 	fillStripledDisplay(messageInfo.bg);
 	displayTextBitmap(messageInfo.text, DEFAULT_FONT, messageInfo.bg, messageInfo.fg, messageInfo.align, messageInfo.bmp, messageInfo.offset);
-	if (BMP_GetWidth(messageInfo.bmp) > STRIPLED_W)
+	if (BMP_GetWidth(messageInfo.bmp) > stripledInfos[i_stripled].w)
 		FastLED.delay(MSG_SCROLL_START_MS);
 }
 
@@ -416,11 +436,11 @@ void updateMessageFg(CRGB fg) {
  */
 
 void rotateStripledDisplay() {
-	CRGB carry = leds[0];
-	for (int i=0; i<N_STRIPLED-1; i++) {
-		leds[i] = leds[i+1];
+	CRGB carry = stripledInfos[i_stripled].leds[0];
+	for (int i=0; i<stripledCount(&stripledInfos[i_stripled])-1; i++) {
+		stripledInfos[i_stripled].leds[i] = stripledInfos[i_stripled].leds[i+1];
 	}
-	leds[N_STRIPLED-1] = carry;
+	stripledInfos[i_stripled].leds[stripledCount(&stripledInfos[i_stripled])-1] = carry;
 }
 
 void updateAnimation() {
@@ -454,12 +474,12 @@ String decodeUrl(String encoded) {
 bool handleSTRIPLEDRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
-	if (index < 0 || index >= N_STRIPLED)
+	if (index < 0 || index >= stripledCount(&stripledInfos[i_stripled]))
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	if (strReq.startsWith("RGB/")) {
 		int rgb = (int) strtol(strReq.substring(4).c_str(), NULL, 16);
-		leds[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
+		stripledInfos[i_stripled].leds[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
 		return true;
 	}
 	else
@@ -470,21 +490,21 @@ bool handleSTRIPLEDRequest(const char * req) {
 bool handleGRADIENTRequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
-	if (src < 0 || src >= N_STRIPLED)
+	if (src < 0 || src >= stripledCount(&stripledInfos[i_stripled]))
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int srcrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
 	int srcr = srcrgb >> 16, srcg = srcrgb >> 8 & 0xFF, srcb = srcrgb & 0xFF;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dst = strReq.toInt();
-	if (dst <= src || dst >= N_STRIPLED)
+	if (dst <= src || dst >= stripledCount(&stripledInfos[i_stripled]))
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dstrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
 	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
 	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
 	for (int i=src; i<=dst; i++) {
-		leds[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
+		stripledInfos[i_stripled].leds[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
 	}
   return true;
 }
@@ -680,9 +700,9 @@ void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, uns
 
 
 void fillStripledDisplay(CRGB crgb) {
-	BMP* bmp = BMP_Create(STRIPLED_W, STRIPLED_H, 24);
-	fillBitmap(bmp, 0, 0, STRIPLED_W, STRIPLED_H, crgb);
-	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
+	BMP* bmp = BMP_Create(stripledInfos[i_stripled].w, stripledInfos[i_stripled].h, 24);
+	fillBitmap(bmp, 0, 0, stripledInfos[i_stripled].w, stripledInfos[i_stripled].h, crgb);
+	stripledBitmapBlit(bmp, 0, 0, 0, stripledInfos[i_stripled].w, stripledInfos[i_stripled].h);
 	BMP_Free( bmp );
 }
 
@@ -691,17 +711,17 @@ void stripledBitmapBlit(BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
 	w = min((int)BMP_GetWidth(bmp),ox+dx);
 	h = min((int)BMP_GetHeight(bmp),oy+dy);
 	byte r,g,b;
-	for (int y=0; y<STRIPLED_H; y++) {
+	for (int y=0; y<stripledInfos[i_stripled].h; y++) {
 	  iy = y+oy;
-	  for (int x=0; x<STRIPLED_W;x++) {
+	  for (int x=0; x<stripledInfos[i_stripled].w;x++) {
 		ix = x+ox;
 		if (ix>=0 && iy>=0 && ix<w && iy<h) {
 		   BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
 		   if (y%2 == 0) {
-			   leds[i] = CRGB(r, g, b);
+			   stripledInfos[i_stripled].leds[i] = CRGB(r, g, b);
 		   }
 		   else {
-			   leds[STRIPLED_W*(int)(i/STRIPLED_W) + STRIPLED_W - ((i%STRIPLED_W) + 1)] = CRGB(r, g, b);
+			   stripledInfos[i_stripled].leds[stripledInfos[i_stripled].w*(int)(i/stripledInfos[i_stripled].w) + stripledInfos[i_stripled].w - ((i%stripledInfos[i_stripled].w) + 1)] = CRGB(r, g, b);
 		   }
 	   }
 	   ++i;
@@ -725,7 +745,7 @@ void displayBitmapFile(String path) {
 	BMP* bmp = openBitmapFile(path);
 	if (bmp == NULL)
 		return;
-	stripledBitmapBlit(bmp, 0, 0, 0, STRIPLED_W, STRIPLED_H);
+	stripledBitmapBlit(bmp, 0, 0, 0, stripledInfos[i_stripled].w, stripledInfos[i_stripled].h);
 	BMP_Free( bmp );
 }
 
@@ -733,12 +753,12 @@ void displayTextBitmap(String text, XBMFont font, CRGB bg, CRGB fg, int align, B
 	if (bmp == NULL)
 		return;
 	int i0 = 0;
-	int width = min((int)BMP_GetWidth(bmp),STRIPLED_W);
-	int height = min((int)BMP_GetHeight(bmp),STRIPLED_H);
+	int width = min((int)BMP_GetWidth(bmp),stripledInfos[i_stripled].w);
+	int height = min((int)BMP_GetHeight(bmp),stripledInfos[i_stripled].h);
 	if (align == ALIGN_CENTER)
-		i0 = (STRIPLED_W-width)/2;
+		i0 = (stripledInfos[i_stripled].w-width)/2;
 	else if (align == ALIGN_RIGHT)
-		i0 = (STRIPLED_W-width);
+		i0 = (stripledInfos[i_stripled].w-width);
 	fillBitmap(bmp, 0, 0, (int)BMP_GetWidth(bmp), (int)BMP_GetHeight(bmp), bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
 	stripledBitmapBlit(bmp, i0, offset, 0, width, height);
