@@ -471,6 +471,15 @@ String decodeUrl(String encoded) {
 	return decoded;
 }
 
+bool handleSTRIPRequest(const char * req) {
+	String strReq = req;
+	int index = strReq.toInt();
+	if (index < 0 || index >= N_STRIPLED)
+		return false;
+	i_stripled = index;
+	return true;
+}
+
 bool handleSTRIPLEDRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
@@ -623,6 +632,8 @@ bool handleHttpRequest(const char * req) {
 	bool result = false;
 	if (strReq.startsWith("LED/"))
 		result = handleLEDRequest(strReq.substring(4).c_str());
+	else if (strReq.startsWith("STRIP/"))
+		result = handleSTRIPRequest(strReq.substring(6).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
@@ -773,8 +784,12 @@ void updateStatus() {
 	int deviceIndex;
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 		updateLEDStatus(deviceIndex);
-	updateMessageScroll();
-	updateAnimation();
+	int saved_i_stripled = i_stripled;
+	for (i_stripled=0; i_stripled<N_STRIPLED; i_stripled++) {
+		updateMessageScroll();
+		updateAnimation();
+	}
+	i_stripled = saved_i_stripled;
 }
 
 void delayWithUpdateStatus(int delay_ms) {
