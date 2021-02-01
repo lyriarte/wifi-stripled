@@ -486,6 +486,9 @@ bool handleSTRIPRequest(const char * req) {
 	if (index < 0 || index >= N_STRIPLED)
 		return false;
 	i_stripled = index;
+	index = strReq.indexOf("/");
+	if (index > -1)
+		return dispatchHttpRequest(strReq.substring(index+1).c_str());
 	return true;
 }
 
@@ -631,13 +634,8 @@ void replyHttpError(String strError) {
 	wifiClient.println();
 }
 
-bool handleHttpRequest(const char * req) {
-	if (req == NULL)
-		return false;
-	String strReq = req;
-	if (! strReq.startsWith("GET /"))
-		return false;
-	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
+bool dispatchHttpRequest(const char * req) {
+  String strReq = req;
 	bool result = false;
 	if (strReq.startsWith("LED/"))
 		result = handleLEDRequest(strReq.substring(4).c_str());
@@ -667,6 +665,17 @@ bool handleHttpRequest(const char * req) {
 		result = handleSSIDRequest();
 	else if (strReq.startsWith("IP"))
 		result = handleIPRequest();
+	return result;
+}
+
+bool handleHttpRequest(const char * req) {
+	if (req == NULL)
+		return false;
+	String strReq = req;
+	if (! strReq.startsWith("GET /"))
+		return false;
+	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
+	bool result = dispatchHttpRequest(strReq.c_str());
 	if (result)
 		replyHttpSuccess(strReq);
 	else
