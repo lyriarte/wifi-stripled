@@ -206,13 +206,22 @@ MESSAGEInfo messageInfo = {
 };
 
 typedef struct {
+	int strip_index;
 	POLLInfo pollInfo;
 	int kind;
 } ANIMInfo;
 
-ANIMInfo animInfo = {
-	{0, MSG_SCROLL_MS},
-	ANIM_NONE
+ANIMInfo animInfos[] = {
+	{
+		0,
+		{0, MSG_SCROLL_MS},
+		ANIM_NONE
+	},
+	{
+		1,
+		{0, MSG_SCROLL_MS},
+		ANIM_NONE
+	}
 };
 
 
@@ -435,20 +444,20 @@ void updateMessageFg(CRGB fg) {
  * Animation
  */
 
-void rotateStripledDisplay() {
-	CRGB carry = stripledInfos[i_stripled].leds[0];
-	for (int i=0; i<stripledCount(&stripledInfos[i_stripled])-1; i++) {
-		stripledInfos[i_stripled].leds[i] = stripledInfos[i_stripled].leds[i+1];
+void rotateStripledDisplay(int index) {
+	CRGB carry = stripledInfos[index].leds[0];
+	for (int i=0; i<stripledCount(&stripledInfos[index])-1; i++) {
+		stripledInfos[index].leds[i] = stripledInfos[index].leds[i+1];
 	}
-	stripledInfos[i_stripled].leds[stripledCount(&stripledInfos[i_stripled])-1] = carry;
+	stripledInfos[index].leds[stripledCount(&stripledInfos[index])-1] = carry;
 }
 
-void updateAnimation() {
-	if (animInfo.kind == ANIM_NONE || !updatePollInfo(&(animInfo.pollInfo)))
+void updateAnimation(int index) {
+	if (animInfos[index].kind == ANIM_NONE || !updatePollInfo(&(animInfos[index].pollInfo)))
 		return;
-	switch (animInfo.kind) {
+	switch (animInfos[index].kind) {
 		case ANIM_ROTATE:
-			rotateStripledDisplay();
+			rotateStripledDisplay(animInfos[index].strip_index);
 			break;
 	}
 }
@@ -520,9 +529,9 @@ bool handleGRADIENTRequest(const char * req) {
 
 bool handleANIMRequest(const char * req) {
 	String strReq = req;
-	animInfo.kind = ANIM_NONE;
+	animInfos[i_stripled].kind = ANIM_NONE;
 	if (strReq == "ROTATE")
-		animInfo.kind = ANIM_ROTATE;
+		animInfos[i_stripled].kind = ANIM_ROTATE;
 	return true;
 }
 
@@ -784,12 +793,10 @@ void updateStatus() {
 	int deviceIndex;
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
 		updateLEDStatus(deviceIndex);
-	int saved_i_stripled = i_stripled;
-	for (i_stripled=0; i_stripled<N_STRIPLED; i_stripled++) {
+	for (deviceIndex=0; deviceIndex<N_STRIPLED; deviceIndex++) {
 		updateMessageScroll();
-		updateAnimation();
+		updateAnimation(deviceIndex);
 	}
-	i_stripled = saved_i_stripled;
 }
 
 void delayWithUpdateStatus(int delay_ms) {
