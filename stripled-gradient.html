@@ -15,14 +15,18 @@
 <script type="text/javascript">
 
 var host = "192.168.16.113";
+var strip = "0";
 var ledmin = "0";
 var ledmax = "425";
 var rgbmin = "000000";
 var rgbmax = "000000";
 
 
-function sendCommand(host, path) {
-	var cmd = "http://" + host + path;
+function sendCommand(arg_host, path) {
+	var strip_path = path;
+	if (arg_host == host)
+		strip_path = "/STRIP/" + strip + path;
+	var cmd = "http://" + arg_host + strip_path;
 	document.getElementById("cmdLog").innerHTML = cmd;
 	var xmlhttp = new XMLHttpRequest();
 	xmlhttp.open("GET", cmd, true);
@@ -51,6 +55,8 @@ function initView() {
 		ledmin = args.ledmin;
 	if (args.ledmax)
 		ledmax = args.ledmax;
+	if (args.strip)
+		strip = args.strip;
 }
 
 function rgbColor(r,g,b) {
