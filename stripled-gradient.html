@@ -57,7 +57,20 @@ function initView() {
 		ledmax = args.ledmax;
 	if (args.strip)
 		strip = args.strip;
+	document.getElementById("host__Fld").MaterialTextfield.change(host);
+	document.getElementById("strip__Fld").MaterialTextfield.change(strip);
+	document.getElementById("ledmin__Fld").MaterialTextfield.change(ledmin);
+	document.getElementById("ledmax__Fld").MaterialTextfield.change(ledmax);
+	componentHandler.upgradeDom();
 }
+
+function updateGlobals() {
+	host = document.getElementById("host__Txt").value;
+	strip = document.getElementById("strip__Txt").value;
+	ledmin = document.getElementById("ledmin__Txt").value;
+	ledmax = document.getElementById("ledmax__Txt").value;
+}
+
 
 function rgbColor(r,g,b) {
 	return (
@@ -75,25 +88,30 @@ function rgbSliders(relem,gelem,belem) {
 }
 
 function updateColor() {
+	updateGlobals();
 	sendCommand(host, "/GRADIENT" 
 		+ "/" + ledmin + "/" + rgbSliders("rrSlider","grSlider","brSlider")
 		+ "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
 function toggleRandom() {
+	updateGlobals();
 	var nled = Number(ledmax) + 1;
 	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0") + "&host=" + host + "&nled=" + nled);
 }
 
 function toggleRotate() {
+	updateGlobals();
 	sendCommand(host, "/ANIM/" + (document.getElementById("rotateCheck").checked ? "ROTATE" : "NONE"));
 }
 
 function gradientCommand(srcrgb,dstrgb) {
+	updateGlobals();
 	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
 }
 
 function rainbow() {
+	updateGlobals();
 	sendCommand(host,'/GRADIENT/' + 0 + '/' + "200000" + '/' + Math.floor(ledmax/3) + '/' + "002000");
 	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax/3) + '/' + "002000" + '/' + Math.floor(ledmax*2/3) + '/' + "000020");
 	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000020" + '/' + ledmax + '/' + "200000");
@@ -175,6 +193,40 @@ function rainbow() {
 	  <label class="mdl-slider__label" for="brSlider">Bleu</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="brSlider" onchange="updateColor()"/>
   </div>
+
+
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="host__Fld">
+      <input class="mdl-textfield__input" type="text" id="host__Txt" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="host__Fld">host</label>
+    </div>
+  </div>  
+
+
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="strip__Fld">
+      <input class="mdl-textfield__input" type="text" id="strip__Txt" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="strip__Fld">strip</label>
+    </div>
+  </div>  
+
+
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ledmin__Fld">
+      <input class="mdl-textfield__input" type="text" id="ledmin__Txt" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="ledmin__Fld">led min</label>
+    </div>
+  </div>  
+
+
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ledmax__Fld">
+      <input class="mdl-textfield__input" type="text" id="ledmax__Txt" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="ledmax__Fld">led max</label>
+    </div>
+  </div>  
+
+
 
   <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone">
   <div style="width:100%;height:100%" class="mdl-textfield mdl-js-textfield">
