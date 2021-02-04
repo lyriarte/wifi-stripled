@@ -115,8 +115,6 @@ function rainbow() {
 
   <main class="mdl-grid">
 
-  <div class="mdl-grid mdl-cell mdl-cell--12-col">
-
   <div class="mdl-cell mdl-cell--2-col">
   <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="randomCheck" id="switchRandomCheck">
     <input type="checkbox" id="randomCheck" class="mdl-switch__input" onchange="toggleRandom()">
@@ -148,45 +146,42 @@ function rainbow() {
   </div>
 
 
-
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="rlSlider">Rouge</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="rlSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="rrSlider">Rouge</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="rrSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="glSlider">Vert</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="glSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="grSlider">Vert</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="grSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="blSlider">Bleu</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="blSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--6-col">
+  <div class="mdl-cell mdl-cell--6-col mdl-cell--4-col-phone">
 	  <label class="mdl-slider__label" for="brSlider">Bleu</label>
 	  <input class="mdl-slider mdl-js-slider" type="range" min="0" max="255" value="0" step="1" id="brSlider" onchange="updateColor()"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--12-col">
+  <div class="mdl-cell mdl-cell--12-col mdl-cell--4-col-phone">
   <div style="width:100%;height:100%" class="mdl-textfield mdl-js-textfield">
   <pre id="cmdLog" style="width:100%;height:100%;border-style:solid;border-width:1px;overflow-x:scroll;overflow-y:scroll;background-color:#f0f0f0"></pre>
   </div>
   </div>
 
-
-  </div>
 
 
   </main>
