@@ -20,6 +20,7 @@ var ledmin = "0";
 var ledmax = "425";
 var rgbmin = "000000";
 var rgbmax = "000000";
+var rndCmdInterval = null;
 
 
 function sendCommand(arg_host, path) {
@@ -94,10 +95,30 @@ function updateColor() {
 		+ "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
+function rnd24(rgbmax) {
+    var rgb = "";
+    for (var i=0; i<3; i++) {
+        var str = "00";
+        if (Math.random() > 0.3)
+            str += Math.floor(Math.random() * rgbmax).toString(16);
+        rgb += str.substr(str.length - 2);
+    }
+    return rgb;
+}
+
+function randomGradient() {
+	var nled = Number(ledmax) + 1 - Number(ledmin);
+	var src = Math.floor(Math.random() * (nled-2));
+	var dst = src + 1 + Math.floor(Math.random() * (nled-src));
+	gradientCommand(Number(ledmin) + src, Number(ledmin) + dst, rnd24(16), rnd24(16))
+}
+
 function toggleRandom() {
 	updateGlobals();
-	var nled = Number(ledmax) + 1;
-	sendCommand("192.168.0.32:1880", "/etagere?on=" + (document.getElementById("randomCheck").checked ? "1" : "0") + "&host=" + host + "&nled=" + nled);
+	if (document.getElementById("randomCheck").checked)
+		rndCmdInterval = setInterval(randomGradient,1000);
+	else
+		clearInterval(rndCmdInterval);
 }
 
 function toggleRotate() {
@@ -105,9 +126,9 @@ function toggleRotate() {
 	sendCommand(host, "/ANIM/" + (document.getElementById("rotateCheck").checked ? "ROTATE" : "NONE"));
 }
 
-function gradientCommand(srcrgb,dstrgb) {
+function gradientCommand(src,dst,srcrgb,dstrgb) {
 	updateGlobals();
-	sendCommand(host,'/GRADIENT/' + ledmin + '/' + srcrgb + '/' + ledmax + '/' + dstrgb);
+	sendCommand(host,'/GRADIENT/' + src + '/' + srcrgb + '/' + dst + '/' + dstrgb);
 }
 
 function rainbow() {
@@ -152,15 +173,15 @@ function rainbow() {
   </div>
   
   <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand('FFA080','FFFFFF')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand(ledmin,ledmax,'FFA080','FFFFFF')"/>
   </div>
   
   <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand('A03010','804010')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand(ledmin,ledmax,'A03010','804010')"/>
   </div>
 
   <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand('000000','000000')"/>
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand(ledmin,ledmax,'000000','000000')"/>
   </div>
 
 
