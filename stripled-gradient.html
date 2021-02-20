@@ -18,8 +18,7 @@ var host = "192.168.16.113";
 var strip = "0";
 var ledmin = "0";
 var ledmax = "425";
-var rgbmin = "000000";
-var rgbmax = "000000";
+var rgbmax = "16";
 var rndCmdInterval = null;
 
 
@@ -56,6 +55,8 @@ function initView() {
 		ledmin = args.ledmin;
 	if (args.ledmax)
 		ledmax = args.ledmax;
+	if (args.rgbmax)
+		rgbmax = args.rgbmax;
 	if (args.strip)
 		strip = args.strip;
 	document.getElementById("host__Fld").MaterialTextfield.change(host);
@@ -110,7 +111,7 @@ function randomGradient() {
 	var nled = Number(ledmax) + 1 - Number(ledmin);
 	var src = Math.floor(Math.random() * (nled-2));
 	var dst = src + 1 + Math.floor(Math.random() * (nled-src));
-	gradientCommand(Number(ledmin) + src, Number(ledmin) + dst, rnd24(16), rnd24(16))
+	gradientCommand(Number(ledmin) + src, Number(ledmin) + dst, rnd24(Number(rgbmax)), rnd24(Number(rgbmax)))
 }
 
 function toggleRandom() {
@@ -133,9 +134,9 @@ function gradientCommand(src,dst,srcrgb,dstrgb) {
 
 function rainbow() {
 	updateGlobals();
-	sendCommand(host,'/GRADIENT/' + 0 + '/' + "200000" + '/' + Math.floor(ledmax/3) + '/' + "002000");
-	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax/3) + '/' + "002000" + '/' + Math.floor(ledmax*2/3) + '/' + "000020");
-	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000020" + '/' + ledmax + '/' + "200000");
+	sendCommand(host,'/GRADIENT/' + 0 + '/' + "100000" + '/' + Math.floor(ledmax/3) + '/' + "001000");
+	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax/3) + '/' + "001000" + '/' + Math.floor(ledmax*2/3) + '/' + "000010");
+	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000010" + '/' + ledmax + '/' + "100000");
 }
 
 
