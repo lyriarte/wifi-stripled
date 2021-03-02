@@ -50,8 +50,8 @@
  * XBM font
  */
 
-extern XBMFont fixedMedium_5x7;
-#define DEFAULT_FONT fixedMedium_5x7
+extern XBMFont fixedMedium_5x6;
+#define DEFAULT_FONT fixedMedium_5x6
 enum {
 	ALIGN_LEFT,
 	ALIGN_CENTER,
