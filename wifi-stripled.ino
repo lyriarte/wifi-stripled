@@ -51,7 +51,11 @@
  */
 
 extern XBMFont fixedMedium_5x6;
-#define DEFAULT_FONT fixedMedium_5x6
+extern XBMFont fixedMedium_5x7;
+#define N_FONT 2
+// Fonts are extern, assign at runtime on setup
+XBMFont * fontPtrs[N_FONT] = {NULL,NULL};
+
 enum {
 	ALIGN_LEFT,
 	ALIGN_CENTER,
@@ -179,6 +183,7 @@ LEDInfo ledInfos[] = {
 typedef struct {
 	int strip_index;
 	POLLInfo pollInfo;
+	XBMFont* fontP;
 	String text;
 	int align;
 	CRGB bg;
@@ -191,6 +196,7 @@ MESSAGEInfo messageInfos[] = {
 	{
 		0,
 		{0, MSG_SCROLL_MS},
+		fontPtrs[0],
 		String(""),
 		ALIGN_CENTER,
 		CRGB(0,0,0),
@@ -247,8 +253,11 @@ void setup() {
 #endif
 	wifiMacInit();
 #ifdef STRIPLED_SCREEN
-	BMP* bmp = newTextBitmap(hostnameSSID, DEFAULT_FONT);
-	displayTextBitmap(i_stripled, hostnameSSID, DEFAULT_FONT, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
+	fontPtrs[0] = &fixedMedium_5x6;
+	fontPtrs[1] = &fixedMedium_5x7;
+	setMessageDefaults();
+	BMP* bmp = newTextBitmap(hostnameSSID, *messageInfos[i_message].fontP);
+	displayTextBitmap(i_stripled, hostnameSSID, *messageInfos[i_message].fontP, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
 	BMP_Free(bmp);
 #endif
 	Serial.print("WiFi.macAddress: ");
@@ -261,6 +270,7 @@ void displaySplashScreen() {
 }
 
 void setMessageDefaults() {
+	messageInfos[i_message].fontP = fontPtrs[0];
 	messageInfos[i_message].align = ALIGN_CENTER;
 	messageInfos[i_message].bg = CRGB(0,0,0);
 	messageInfos[i_message].fg = CRGB(4,4,4);
@@ -419,10 +429,10 @@ void updateMessageText(int index, String text) {
 	messageInfos[index].text = text;
 	if (messageInfos[index].bmp != NULL)
 		BMP_Free(messageInfos[index].bmp);
-	messageInfos[index].bmp = newTextBitmap(messageInfos[index].text, DEFAULT_FONT);
+	messageInfos[index].bmp = newTextBitmap(messageInfos[index].text, *messageInfos[index].fontP);
 	messageInfos[index].offset = 0;
 	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, DEFAULT_FONT, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
 	if (BMP_GetWidth(messageInfos[index].bmp) > stripledInfos[messageInfos[index].strip_index].w)
 		FastLED.delay(MSG_SCROLL_START_MS);
 }
@@ -430,18 +440,18 @@ void updateMessageText(int index, String text) {
 void updateMessageAlign(int index, int align) {
 	messageInfos[index].align = align;
 	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, DEFAULT_FONT, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
 }
 
 void updateMessageBg(int index, CRGB bg) {
 	messageInfos[index].bg = bg;
 	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, DEFAULT_FONT, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
 }
 
 void updateMessageFg(int index, CRGB fg) {
 	messageInfos[index].fg = fg;
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, DEFAULT_FONT, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
 }
 
 
@@ -494,6 +504,16 @@ bool handleSTRIPRequest(const char * req) {
 	index = strReq.indexOf("/");
 	if (index > -1)
 		return dispatchHttpRequest(strReq.substring(index+1).c_str());
+	return true;
+}
+
+bool handleFONTRequest(const char * req) {
+	String strReq = req;
+	int index = strReq.toInt();
+	if (index < 0 || index >= N_FONT)
+		return false;
+	messageInfos[i_message].fontP = fontPtrs[index];
+	updateMessageText(i_message, messageInfos[i_message].text);
 	return true;
 }
 
@@ -646,6 +666,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleLEDRequest(strReq.substring(4).c_str());
 	else if (strReq.startsWith("STRIP/"))
 		result = handleSTRIPRequest(strReq.substring(6).c_str());
+	else if (strReq.startsWith("FONT/"))
+		result = handleFONTRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
