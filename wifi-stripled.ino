@@ -33,8 +33,8 @@
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
-#define STRIPLED_W_0    71
-#define STRIPLED_H_0    6
+#define STRIPLED_W_0    32
+#define STRIPLED_H_0    8
 
 #define SPLASH_SCREEN_FILE "/test.bmp"
 #define SPLASH_SCREEN_DELAY_MS 500
