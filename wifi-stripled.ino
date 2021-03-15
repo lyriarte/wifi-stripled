@@ -62,6 +62,11 @@ enum {
 	ALIGN_RIGHT
 };
 
+enum {
+	WRAP_LINES,
+	WRAP_COLUMNS
+};
+
 /*
  * WiFi
  */
@@ -131,6 +136,7 @@ typedef struct {
 	int gpio;
 	int w;
 	int h;
+	int wrap;
 	CRGB *leds;
 } STRIPLEDInfo;
 
@@ -139,6 +145,7 @@ STRIPLEDInfo stripledInfos[] = {
 		STRIPLED_GPIO_0,
 		STRIPLED_W_0,
 		STRIPLED_H_0,
+		WRAP_LINES,
 		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*sizeof(CRGB))
 	}
 };
@@ -422,7 +429,7 @@ void updateMessageScroll(int index) {
 		return;
 	messageInfos[index].offset = (messageInfos[index].offset + 1) % BMP_GetWidth(messageInfos[index].bmp);
 	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	stripledBitmapBlit(messageInfos[index].strip_index, messageInfos[index].bmp, 0, messageInfos[index].offset, 0, stripledInfos[messageInfos[index].strip_index].w, stripledInfos[messageInfos[index].strip_index].h);
+	stripledBitmapBlit(messageInfos[index].strip_index, messageInfos[index].bmp, 0, messageInfos[index].offset, 0, stripledInfos[messageInfos[index].strip_index].w, stripledInfos[messageInfos[index].strip_index].h, stripledInfos[index].wrap);
 }
 
 void updateMessageText(int index, String text) {
@@ -758,32 +765,34 @@ void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, uns
 void fillStripledDisplay(int index, CRGB crgb) {
 	BMP* bmp = BMP_Create(stripledInfos[index].w, stripledInfos[index].h, 24);
 	fillBitmap(bmp, 0, 0, stripledInfos[index].w, stripledInfos[index].h, crgb);
-	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h);
+	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h, WRAP_LINES);
 	BMP_Free( bmp );
 }
 
-void stripledBitmapBlit(int index, BMP* bmp, int i0, int ox, int oy, int dx, int dy) {
+void stripledBitmapBlit(int index, BMP* bmp, int i0, int ox, int oy, int dx, int dy, int wrap) {
 	int i=i0, ix, iy, w, h;
 	w = min((int)BMP_GetWidth(bmp),ox+dx);
 	h = min((int)BMP_GetHeight(bmp),oy+dy);
+	STRIPLEDInfo * striP = &stripledInfos[index];
 	byte r,g,b;
-	for (int y=0; y<stripledInfos[index].h; y++) {
-	  iy = y+oy;
-	  for (int x=0; x<stripledInfos[index].w;x++) {
-		ix = x+ox;
-		if (ix>=0 && iy>=0 && ix<w && iy<h) {
-		   BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
-		   if (y%2 == 0) {
-			   stripledInfos[index].leds[i] = CRGB(r, g, b);
-		   }
-		   else {
-			   stripledInfos[index].leds[stripledInfos[index].w*(int)(i/stripledInfos[index].w) + stripledInfos[index].w - ((i%stripledInfos[index].w) + 1)] = CRGB(r, g, b);
-		   }
-	   }
-	   ++i;
-    }
-  }
+	if (wrap == WRAP_LINES) {
+		for (int y=0; y<striP->h; y++) {
+			iy = y+oy;
+			for (int x=0; x<striP->w;x++) {
+				ix = x+ox;
+				if (ix>=0 && iy>=0 && ix<w && iy<h) {
+					BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
+					if (y%2 == 0) 
+						striP->leds[i] = CRGB(r, g, b);		   
+					else 
+						striP->leds[striP->w*(int)(i/striP->w) + striP->w - ((i%striP->w) + 1)] = CRGB(r, g, b);		   
+				}
+				++i;
+			}
+		}
+	}
 }
+
 
 BMP* openBitmapFile(String path) {
   if (!SPIFFS.exists(path)) {
@@ -801,7 +810,7 @@ void displayBitmapFile(int index, String path) {
 	BMP* bmp = openBitmapFile(path);
 	if (bmp == NULL)
 		return;
-	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h);
+	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h, stripledInfos[index].wrap);
 	BMP_Free( bmp );
 }
 
@@ -817,7 +826,7 @@ void displayTextBitmap(int index, String text, XBMFont font, CRGB bg, CRGB fg, i
 		i0 = (stripledInfos[index].w-width);
 	fillBitmap(bmp, 0, 0, (int)BMP_GetWidth(bmp), (int)BMP_GetHeight(bmp), bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
-	stripledBitmapBlit(index, bmp, i0, offset, 0, width, height);
+	stripledBitmapBlit(index, bmp, i0, offset, 0, width, height, stripledInfos[index].wrap);
 }
 
 /* 
