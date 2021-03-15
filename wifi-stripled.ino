@@ -145,7 +145,7 @@ STRIPLEDInfo stripledInfos[] = {
 		STRIPLED_GPIO_0,
 		STRIPLED_W_0,
 		STRIPLED_H_0,
-		WRAP_LINES,
+		WRAP_COLUMNS,
 		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*sizeof(CRGB))
 	}
 };
@@ -786,6 +786,22 @@ void stripledBitmapBlit(int index, BMP* bmp, int i0, int ox, int oy, int dx, int
 						striP->leds[i] = CRGB(r, g, b);		   
 					else 
 						striP->leds[striP->w*(int)(i/striP->w) + striP->w - ((i%striP->w) + 1)] = CRGB(r, g, b);		   
+				}
+				++i;
+			}
+		}
+	}
+	else {
+		for (int x=0; x<striP->w;x++) {
+			ix = x+ox;
+			for (int y=0; y<striP->h; y++) {
+				iy = y+oy;
+				if (ix>=0 && iy>=0 && ix<w && iy<h) {
+					BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
+					if (x%2 == 0) 
+						striP->leds[i] = CRGB(r, g, b);		   
+					else 
+						striP->leds[striP->h*(int)(i/striP->h) + striP->h - ((i%striP->h) + 1)] = CRGB(r, g, b);		   
 				}
 				++i;
 			}
