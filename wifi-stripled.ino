@@ -203,7 +203,7 @@ MESSAGEInfo messageInfos[] = {
 	{
 		0,
 		{0, MSG_SCROLL_MS},
-		fontPtrs[0],
+		NULL,
 		String(""),
 		ALIGN_CENTER,
 		CRGB(0,0,0),
@@ -277,7 +277,7 @@ void displaySplashScreen() {
 }
 
 void setMessageDefaults() {
-	messageInfos[i_message].fontP = fontPtrs[0];
+	messageInfos[i_message].fontP = fontPtrs[1];
 	messageInfos[i_message].align = ALIGN_CENTER;
 	messageInfos[i_message].bg = CRGB(0,0,0);
 	messageInfos[i_message].fg = CRGB(4,4,4);
