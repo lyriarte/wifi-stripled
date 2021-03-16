@@ -840,6 +840,9 @@ void displayTextBitmap(int index, String text, XBMFont font, CRGB bg, CRGB fg, i
 		i0 = (stripledInfos[index].w-width)/2;
 	else if (align == ALIGN_RIGHT)
 		i0 = (stripledInfos[index].w-width);
+	// shift alignment on even columns
+	if (align != ALIGN_LEFT && stripledInfos[index].wrap == WRAP_COLUMNS)
+		i0 = 2 * (int)(i0/2) * stripledInfos[index].h;
 	fillBitmap(bmp, 0, 0, (int)BMP_GetWidth(bmp), (int)BMP_GetHeight(bmp), bg);
 	drawTextBitmap(bmp, text, font, 0, 0, fg);
 	stripledBitmapBlit(index, bmp, i0, offset, 0, width, height, stripledInfos[index].wrap);
