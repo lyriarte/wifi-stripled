@@ -5,8 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
-#include <FS.h>
-#include <FastLED.h>
+#include <StripDisplay.h>
 
 #include "XBMFont.h"
 #include "qdbmp.h"
@@ -33,11 +32,8 @@
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
-#define STRIPLED_W_0    32
+#define STRIPLED_W_0    64
 #define STRIPLED_H_0    8
-
-#define SPLASH_SCREEN_FILE "/test.bmp"
-#define SPLASH_SCREEN_DELAY_MS 500
 
 #define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 50
@@ -55,17 +51,6 @@ extern XBMFont fixedMedium_5x7;
 #define N_FONT 2
 // Fonts are extern, assign at runtime on setup
 XBMFont * fontPtrs[N_FONT] = {NULL,NULL};
-
-enum {
-	ALIGN_LEFT,
-	ALIGN_CENTER,
-	ALIGN_RIGHT
-};
-
-enum {
-	WRAP_LINES,
-	WRAP_COLUMNS
-};
 
 /*
  * WiFi
@@ -133,25 +118,23 @@ typedef struct {
  */
  
 typedef struct {
-	int gpio;
-	int w;
-	int h;
-	int wrap;
-	CRGB *leds;
+	StripDisplay * stripP;
 } STRIPLEDInfo;
 
 STRIPLEDInfo stripledInfos[] = {
 	{
+	new StripDisplay(
 		STRIPLED_GPIO_0,
 		STRIPLED_W_0,
 		STRIPLED_H_0,
 		WRAP_COLUMNS,
 		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*sizeof(CRGB))
+		)
 	}
 };
 
 int stripledCount(STRIPLEDInfo * stripledInfosP) {
-	return stripledInfosP->w * stripledInfosP->h;
+	return stripledInfosP->stripP->getWidth() * stripledInfosP->stripP->getHeight();
 }
 
 #define N_STRIPLED (sizeof(stripledInfos) / sizeof(STRIPLEDInfo))
@@ -190,12 +173,8 @@ LEDInfo ledInfos[] = {
 typedef struct {
 	int strip_index;
 	POLLInfo pollInfo;
-	XBMFont* fontP;
 	String text;
 	int align;
-	CRGB bg;
-	CRGB fg;
-	BMP* bmp;
 	int offset;
 } MESSAGEInfo;
 
@@ -203,12 +182,8 @@ MESSAGEInfo messageInfos[] = {
 	{
 		0,
 		{0, MSG_SCROLL_MS},
-		NULL,
-		String(""),
+		"",
 		ALIGN_CENTER,
-		CRGB(0,0,0),
-		CRGB(4,4,4),
-		NULL,
 		0
 	}
 };
@@ -252,35 +227,23 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].leds, STRIPLED_W_0*STRIPLED_H_0);
-	Serial.begin(BPS_HOST);
-	SPIFFS.begin();
-#ifdef STRIPLED_SCREEN
-	displaySplashScreen();
-#endif
-	wifiMacInit();
-#ifdef STRIPLED_SCREEN
 	fontPtrs[0] = &fixedMedium_5x6;
 	fontPtrs[1] = &fixedMedium_5x7;
+	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0);
+	Serial.begin(BPS_HOST);
+	wifiMacInit();
+	stripledInfos[0].stripP->setup(fontPtrs[1]);
+	stripledInfos[0].stripP->setText(wifiMacStr);
 	setMessageDefaults();
-	BMP* bmp = newTextBitmap(hostnameSSID, *messageInfos[i_message].fontP);
-	displayTextBitmap(i_stripled, hostnameSSID, *messageInfos[i_message].fontP, CRGB(0,0,0), CRGB(4,8,16), ALIGN_CENTER, bmp, 0);
-	BMP_Free(bmp);
-#endif
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
 
-void displaySplashScreen() {
-	displayBitmapFile(i_stripled, SPLASH_SCREEN_FILE);
-	FastLED.delay(SPLASH_SCREEN_DELAY_MS);
-}
-
 void setMessageDefaults() {
-	messageInfos[i_message].fontP = fontPtrs[1];
-	messageInfos[i_message].align = ALIGN_CENTER;
-	messageInfos[i_message].bg = CRGB(0,0,0);
-	messageInfos[i_message].fg = CRGB(4,4,4);
+	stripledInfos[i_message].stripP->setFont(fontPtrs[1]);
+	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
+	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
+	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
 }
 
 /*
@@ -425,40 +388,37 @@ bool handleLEDRequest(const char * req) {
  */
 
 void updateMessageScroll(int index) {
-	if (messageInfos[index].bmp == NULL || BMP_GetWidth(messageInfos[index].bmp) <= stripledInfos[messageInfos[index].strip_index].w || !updatePollInfo(&(messageInfos[index].pollInfo)))
+	if (!updatePollInfo(&(messageInfos[index].pollInfo)))
 		return;
-	messageInfos[index].offset = (messageInfos[index].offset + 1) % BMP_GetWidth(messageInfos[index].bmp);
-	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	stripledBitmapBlit(messageInfos[index].strip_index, messageInfos[index].bmp, 0, messageInfos[index].offset, 0, stripledInfos[messageInfos[index].strip_index].w, stripledInfos[messageInfos[index].strip_index].h, stripledInfos[index].wrap);
+  if (stripledInfos[index].stripP->getTextWidth() < stripledInfos[index].stripP->getWidth())
+    return;
+	messageInfos[index].offset = (messageInfos[index].offset + 1) % stripledInfos[index].stripP->getTextWidth();
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 void updateMessageText(int index, String text) {
 	messageInfos[index].text = text;
-	if (messageInfos[index].bmp != NULL)
-		BMP_Free(messageInfos[index].bmp);
-	messageInfos[index].bmp = newTextBitmap(messageInfos[index].text, *messageInfos[index].fontP);
 	messageInfos[index].offset = 0;
-	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
-	if (BMP_GetWidth(messageInfos[index].bmp) > stripledInfos[messageInfos[index].strip_index].w)
+	stripledInfos[index].stripP->setText(text);
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
+	if (stripledInfos[index].stripP->getTextWidth() > stripledInfos[index].stripP->getWidth())
 		FastLED.delay(MSG_SCROLL_START_MS);
 }
 
 void updateMessageAlign(int index, int align) {
-	messageInfos[index].align = align;
-	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	stripledInfos[index].stripP->setAlignment(align);
+	messageInfos[index].offset = 0;
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 void updateMessageBg(int index, CRGB bg) {
-	messageInfos[index].bg = bg;
-	fillStripledDisplay(messageInfos[index].strip_index, messageInfos[index].bg);
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	stripledInfos[index].stripP->setBgColor(bg);
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 void updateMessageFg(int index, CRGB fg) {
-	messageInfos[index].fg = fg;
-	displayTextBitmap(messageInfos[index].strip_index, messageInfos[index].text, *messageInfos[index].fontP, messageInfos[index].bg, messageInfos[index].fg, messageInfos[index].align, messageInfos[index].bmp, messageInfos[index].offset);
+	stripledInfos[index].stripP->setFgColor(fg);
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 
@@ -467,11 +427,11 @@ void updateMessageFg(int index, CRGB fg) {
  */
 
 void rotateStripledDisplay(int index) {
-	CRGB carry = stripledInfos[index].leds[0];
+	CRGB carry = stripledInfos[index].stripP->getLeds()[0];
 	for (int i=0; i<stripledCount(&stripledInfos[index])-1; i++) {
-		stripledInfos[index].leds[i] = stripledInfos[index].leds[i+1];
+		stripledInfos[index].stripP->getLeds()[i] = stripledInfos[index].stripP->getLeds()[i+1];
 	}
-	stripledInfos[index].leds[stripledCount(&stripledInfos[index])-1] = carry;
+	stripledInfos[index].stripP->getLeds()[stripledCount(&stripledInfos[index])-1] = carry;
 }
 
 void updateAnimation(int index) {
@@ -519,7 +479,7 @@ bool handleFONTRequest(const char * req) {
 	int index = strReq.toInt();
 	if (index < 0 || index >= N_FONT)
 		return false;
-	messageInfos[i_message].fontP = fontPtrs[index];
+	stripledInfos[i_message].stripP->setFont(fontPtrs[index]);
 	updateMessageText(i_message, messageInfos[i_message].text);
 	return true;
 }
@@ -532,7 +492,7 @@ bool handleSTRIPLEDRequest(const char * req) {
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	if (strReq.startsWith("RGB/")) {
 		int rgb = (int) strtol(strReq.substring(4).c_str(), NULL, 16);
-		stripledInfos[i_stripled].leds[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
+		stripledInfos[i_stripled].stripP->getLeds()[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
 		return true;
 	}
 	else
@@ -557,7 +517,7 @@ bool handleGRADIENTRequest(const char * req) {
 	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
 	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
 	for (int i=src; i<=dst; i++) {
-		stripledInfos[i_stripled].leds[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
+		stripledInfos[i_stripled].stripP->getLeds()[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
 	}
   return true;
 }
@@ -608,11 +568,6 @@ bool handleFGRequest(const char * req) {
 	return true;
 }
 
-bool handleSPLASHSCREENRequest() {
-	displayBitmapFile(i_stripled, SPLASH_SCREEN_FILE);
-	return true;
-}
-
 bool handleSSIDChangeRequest(const char * req) {
 	String strReq = req;
 	int networkReq = strReq.toInt();
@@ -626,8 +581,8 @@ bool handleSSIDRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	messageInfos[i_message].bg = CRGB(0,0,0);
-	messageInfos[i_message].fg = CRGB(8,0,16);
+	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
+	stripledInfos[i_message].stripP->setFgColor(CRGB(8,0,16));
 	updateMessageText(i_message, networks[i_network].SSID);
 	return true;
 }
@@ -636,8 +591,8 @@ bool handleIPRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	messageInfos[i_message].bg = CRGB(0,0,0);
-	messageInfos[i_message].fg = CRGB(0,8,16);
+	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
+	stripledInfos[i_message].stripP->setFgColor(CRGB(0,8,16));
 	updateMessageText(i_message, networks[i_network].address.toString());
 	return true;
 }
@@ -691,8 +646,6 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleBGRequest(strReq.substring(3).c_str());
 	else if (strReq.startsWith("FG/"))
 		result = handleFGRequest(strReq.substring(3).c_str());
-	else if (strReq.startsWith("SPLASHSCREEN"))
-		result = handleSPLASHSCREENRequest();
 	else if (strReq.startsWith("SSID/"))
 		result = handleSSIDChangeRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("SSID"))
@@ -736,117 +689,7 @@ void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsign
 	}
 }
 
-/* 
- * Text bitmap
- */
 
-BMP* newTextBitmap(String text, XBMFont font) {
-	BMP* bmp = BMP_Create(text.length() * font.getWidth(), font.getHeight(), 24);
-	if (bmp == NULL) {
-		Serial.println("Bitmap allocation failed");
-		return bmp;
-	}
-	return bmp;
-}
-
-void fillBitmap(BMP* bmp, unsigned int x0, unsigned int y0, unsigned int dx, unsigned int dy, CRGB crgb) {
-	for (unsigned int x=x0; x<x0+dx; x++)
-		for (unsigned int y=y0; y<y0+dy; y++)
-			BMP_SetPixelRGB(bmp, x, y, crgb.r, crgb.g, crgb.b);
-}
-
-
-
-/* 
- * Stripled bitmap
- */
-
-
-void fillStripledDisplay(int index, CRGB crgb) {
-	BMP* bmp = BMP_Create(stripledInfos[index].w, stripledInfos[index].h, 24);
-	fillBitmap(bmp, 0, 0, stripledInfos[index].w, stripledInfos[index].h, crgb);
-	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h, WRAP_LINES);
-	BMP_Free( bmp );
-}
-
-void stripledBitmapBlit(int index, BMP* bmp, int i0, int ox, int oy, int dx, int dy, int wrap) {
-	int i=i0, ix, iy, w, h;
-	w = min((int)BMP_GetWidth(bmp),ox+dx);
-	h = min((int)BMP_GetHeight(bmp),oy+dy);
-	STRIPLEDInfo * striP = &stripledInfos[index];
-	byte r,g,b;
-	if (wrap == WRAP_LINES) {
-		for (int y=0; y<striP->h; y++) {
-			iy = y+oy;
-			for (int x=0; x<striP->w;x++) {
-				ix = x+ox;
-				if (ix>=0 && iy>=0 && ix<w && iy<h) {
-					BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
-					if (y%2 == 0) 
-						striP->leds[i] = CRGB(r, g, b);		   
-					else 
-						striP->leds[striP->w*(int)(i/striP->w) + striP->w - ((i%striP->w) + 1)] = CRGB(r, g, b);		   
-				}
-				++i;
-			}
-		}
-	}
-	else {
-		for (int x=0; x<striP->w;x++) {
-			ix = x+ox;
-			for (int y=0; y<striP->h; y++) {
-				iy = y+oy;
-				if (ix>=0 && iy>=0 && ix<w && iy<h) {
-					BMP_GetPixelRGB(bmp,ix,iy,&r,&g,&b);
-					if (x%2 == 0) 
-						striP->leds[i] = CRGB(r, g, b);		   
-					else 
-						striP->leds[striP->h*(int)(i/striP->h) + striP->h - ((i%striP->h) + 1)] = CRGB(r, g, b);		   
-				}
-				++i;
-			}
-		}
-	}
-}
-
-
-BMP* openBitmapFile(String path) {
-  if (!SPIFFS.exists(path)) {
-    Serial.println("File not found");
-    return NULL;
-  }
-  BMP* bmp = BMP_ReadFile(path.c_str());
-  if (bmp == NULL) {
-    Serial.println("Bitmap file open error");
-  }
-  return bmp;
-}
-
-void displayBitmapFile(int index, String path) {
-	BMP* bmp = openBitmapFile(path);
-	if (bmp == NULL)
-		return;
-	stripledBitmapBlit(index, bmp, 0, 0, 0, stripledInfos[index].w, stripledInfos[index].h, stripledInfos[index].wrap);
-	BMP_Free( bmp );
-}
-
-void displayTextBitmap(int index, String text, XBMFont font, CRGB bg, CRGB fg, int align, BMP* bmp, int offset) {
-	if (bmp == NULL)
-		return;
-	int i0 = 0;
-	int width = min((int)BMP_GetWidth(bmp),stripledInfos[index].w);
-	int height = min((int)BMP_GetHeight(bmp),stripledInfos[index].h);
-	if (align == ALIGN_CENTER)
-		i0 = (stripledInfos[index].w-width)/2;
-	else if (align == ALIGN_RIGHT)
-		i0 = (stripledInfos[index].w-width);
-	// shift alignment on even columns
-	if (align != ALIGN_LEFT && stripledInfos[index].wrap == WRAP_COLUMNS)
-		i0 = 2 * (int)(i0/2) * stripledInfos[index].h;
-	fillBitmap(bmp, 0, 0, (int)BMP_GetWidth(bmp), (int)BMP_GetHeight(bmp), bg);
-	drawTextBitmap(bmp, text, font, 0, 0, fg);
-	stripledBitmapBlit(index, bmp, i0, offset, 0, width, height, stripledInfos[index].wrap);
-}
 
 /* 
  * Main loop
