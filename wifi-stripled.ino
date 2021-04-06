@@ -5,6 +5,9 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+
+#define FONT_5x6_FIXED_MEDIUM
+#define FONT_5x7_FIXED_MEDIUM
 #include <StripDisplay.h>
 
 #include "XBMFont.h"
@@ -46,8 +49,6 @@
  * XBM font
  */
 
-extern XBMFont fixedMedium_5x6;
-extern XBMFont fixedMedium_5x7;
 #define N_FONT 2
 // Fonts are extern, assign at runtime on setup
 XBMFont * fontPtrs[N_FONT] = {NULL,NULL};
