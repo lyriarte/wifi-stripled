@@ -6,8 +6,12 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 
+#define FONT_4x6_FIXED_MEDIUM
 #define FONT_5x6_FIXED_MEDIUM
 #define FONT_5x7_FIXED_MEDIUM
+#define FONT_5x8_FIXED_MEDIUM
+#define FONT_6x8_FIXED_MEDIUM
+#define FONT_6x9_FIXED_MEDIUM
 #include <StripDisplay.h>
 
 #include "XBMFont.h"
@@ -49,9 +53,9 @@
  * XBM font
  */
 
-#define N_FONT 2
+#define N_FONT 6
 // Fonts are extern, assign at runtime on setup
-XBMFont * fontPtrs[N_FONT] = {NULL,NULL};
+XBMFont * fontPtrs[N_FONT] = {NULL,NULL,NULL,NULL,NULL,NULL};
 
 /*
  * WiFi
@@ -228,12 +232,16 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	fontPtrs[0] = &fixedMedium_5x6;
-	fontPtrs[1] = &fixedMedium_5x7;
+	fontPtrs[0] = &fixedMedium_4x6;
+	fontPtrs[1] = &fixedMedium_5x6;
+  fontPtrs[2] = &fixedMedium_5x7;
+  fontPtrs[3] = &fixedMedium_5x8;
+  fontPtrs[4] = &fixedMedium_6x8;
+  fontPtrs[5] = &fixedMedium_6x9;
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
-	stripledInfos[0].stripP->setup(fontPtrs[1]);
+	stripledInfos[0].stripP->setup(fontPtrs[0]);
 	stripledInfos[0].stripP->setText(wifiMacStr);
 	setMessageDefaults();
 	Serial.print("WiFi.macAddress: ");
@@ -241,7 +249,7 @@ void setup() {
 }
 
 void setMessageDefaults() {
-	stripledInfos[i_message].stripP->setFont(fontPtrs[1]);
+	stripledInfos[i_message].stripP->setFont(fontPtrs[2]);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
 	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
 	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
