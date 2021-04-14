@@ -39,8 +39,33 @@
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
-#define STRIPLED_W_0    64
-#define STRIPLED_H_0    8
+#define BITMAP_W_0	32
+#define BITMAP_H_0	16
+#define STRIPLED_W_0	32
+#define STRIPLED_H_0	8
+
+StripLEDPanel panels_0[] = {
+{
+	0,
+	0,
+	0,
+	STRIPLED_W_0,
+	STRIPLED_H_0,
+	WRAP_COLUMNS
+},
+{
+	STRIPLED_W_0*STRIPLED_H_0,
+	0,
+	STRIPLED_H_0,
+	STRIPLED_W_0,
+	STRIPLED_H_0,
+	WRAP_COLUMNS
+}
+};
+
+#define N_PANELS_0 (sizeof(panels_0) / sizeof(StripLEDPanel))
+
+
 
 #define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 50
@@ -130,10 +155,11 @@ STRIPLEDInfo stripledInfos[] = {
 	{
 	new StripDisplay(
 		STRIPLED_GPIO_0,
-		STRIPLED_W_0,
-		STRIPLED_H_0,
-		WRAP_COLUMNS,
-		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*sizeof(CRGB))
+		BITMAP_W_0,
+		BITMAP_H_0,
+		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0*sizeof(CRGB)),
+		panels_0,
+		N_PANELS_0
 		)
 	}
 };
@@ -234,11 +260,11 @@ void setup() {
 		pinMode(ledInfos[i].gpio, OUTPUT);
 	fontPtrs[0] = &fixedMedium_4x6;
 	fontPtrs[1] = &fixedMedium_5x6;
-  fontPtrs[2] = &fixedMedium_5x7;
-  fontPtrs[3] = &fixedMedium_5x8;
-  fontPtrs[4] = &fixedMedium_6x8;
-  fontPtrs[5] = &fixedMedium_6x9;
-	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0);
+	fontPtrs[2] = &fixedMedium_5x7;
+	fontPtrs[3] = &fixedMedium_5x8;
+	fontPtrs[4] = &fixedMedium_6x8;
+	fontPtrs[5] = &fixedMedium_6x9;
+	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
 	stripledInfos[0].stripP->setup(fontPtrs[0]);
