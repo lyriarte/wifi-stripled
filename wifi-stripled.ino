@@ -12,6 +12,12 @@
 #define FONT_5x8_FIXED_MEDIUM
 #define FONT_6x8_FIXED_MEDIUM
 #define FONT_6x9_FIXED_MEDIUM
+#define FONT_6x10_FIXED_MEDIUM
+#define FONT_6x12_FIXED_MEDIUM
+#define FONT_6x13_FIXED_MEDIUM
+#define FONT_7x13_FIXED_BOLD
+#define FONT_8x13_FIXED_MEDIUM
+#define FONT_8x13_FIXED_BOLD
 #include <StripDisplay.h>
 
 #include "XBMFont.h"
@@ -78,9 +84,21 @@ StripLEDPanel panels_0[] = {
  * XBM font
  */
 
-#define N_FONT 6
-// Fonts are extern, assign at runtime on setup
-XBMFont * fontPtrs[N_FONT] = {NULL,NULL,NULL,NULL,NULL,NULL};
+#define N_FONT 12
+XBMFont * fontPtrs[N_FONT] = {
+	&fixedMedium_4x6,
+	&fixedMedium_5x6,
+	&fixedMedium_5x7,
+	&fixedMedium_5x8,
+	&fixedMedium_6x8,
+	&fixedMedium_6x9,	
+	&fixedMedium_6x10,	
+	&fixedMedium_6x12,	
+	&fixedMedium_6x13,	
+	&fixedBold_7x13,	
+	&fixedMedium_8x13,	
+	&fixedBold_8x13	
+};
 
 /*
  * WiFi
@@ -258,12 +276,6 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
-	fontPtrs[0] = &fixedMedium_4x6;
-	fontPtrs[1] = &fixedMedium_5x6;
-	fontPtrs[2] = &fixedMedium_5x7;
-	fontPtrs[3] = &fixedMedium_5x8;
-	fontPtrs[4] = &fixedMedium_6x8;
-	fontPtrs[5] = &fixedMedium_6x9;
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
