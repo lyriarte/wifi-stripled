@@ -287,7 +287,7 @@ void setup() {
 }
 
 void setMessageDefaults() {
-	stripledInfos[i_message].stripP->setFont(fontPtrs[2]);
+	stripledInfos[i_message].stripP->setFont(fontPtrs[11]);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
 	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
 	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
