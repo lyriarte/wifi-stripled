@@ -458,6 +458,11 @@ void updateMessageAlign(int index, int align) {
 	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
+void updateMessageLine(int index, int line) {
+	stripledInfos[index].stripP->setLine(line);
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
+}
+
 void updateMessageBg(int index, CRGB bg) {
 	stripledInfos[index].stripP->setBgColor(bg);
 	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
@@ -601,6 +606,12 @@ bool handleALIGNRequest(const char * req) {
 	return true;
 }
 
+bool handleLINERequest(const char * req) {
+	String strReq = req;
+	updateMessageLine(i_message, strReq.toInt());
+	return true;
+}
+
 bool handleBGRequest(const char * req) {
 	String strReq = req;
 	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
@@ -689,6 +700,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleSCROLLRequest(strReq.substring(7).c_str());
 	else if (strReq.startsWith("ALIGN/"))
 		result = handleALIGNRequest(strReq.substring(6).c_str());
+	else if (strReq.startsWith("LINE/"))
+		result = handleLINERequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("BG/"))
 		result = handleBGRequest(strReq.substring(3).c_str());
 	else if (strReq.startsWith("FG/"))
