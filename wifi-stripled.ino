@@ -574,6 +574,31 @@ bool handleGRADIENTRequest(const char * req) {
   return true;
 }
 
+bool handleFILLRequest(const char * req) {
+	String strReq = req;
+	unsigned int x0 = strReq.toInt();
+	if (x0 < 0 || x0 >= stripledInfos[i_message].stripP->getWidth())
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	unsigned int y0 = strReq.toInt();
+	if (y0 < 0 || y0 >= stripledInfos[i_message].stripP->getHeight())
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	unsigned int dx = strReq.toInt();
+	if (dx < 0 || dx >= stripledInfos[i_message].stripP->getWidth()-x0)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	unsigned int dy = strReq.toInt();
+	if (dy < 0 || dy >= stripledInfos[i_message].stripP->getHeight()-y0)
+		return false;
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	int r = rgb >> 16, g = rgb >> 8 & 0xFF, b = rgb & 0xFF;
+	stripledInfos[i_message].stripP->fillBitmap(x0, y0, dx, dy, rgb);
+	stripledInfos[i_message].stripP->displayBitmap();
+	return true;
+}
+
 bool handleANIMRequest(const char * req) {
 	String strReq = req;
 	animInfos[i_stripled].kind = ANIM_NONE;
@@ -692,6 +717,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("FILL/"))
+		result = handleFILLRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("ANIM/"))
 		result = handleANIMRequest(strReq.substring(5).c_str());
 	else if (strReq.startsWith("MSG/"))
