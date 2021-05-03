@@ -75,6 +75,7 @@ StripLEDPanel panels_0[] = {
 
 #define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 50
+#define MSG_SCROLL_OFFSET -10
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -439,7 +440,9 @@ void updateMessageScroll(int index) {
 		return;
   if (stripledInfos[index].stripP->getTextWidth() < stripledInfos[index].stripP->getWidth())
     return;
-	messageInfos[index].offset = (messageInfos[index].offset + 1) % stripledInfos[index].stripP->getTextWidth();
+	messageInfos[index].offset = messageInfos[index].offset + 1;
+	if (messageInfos[index].offset >= stripledInfos[index].stripP->getTextWidth())
+		messageInfos[index].offset = MSG_SCROLL_OFFSET;
 	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
