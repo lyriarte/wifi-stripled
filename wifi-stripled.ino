@@ -588,11 +588,11 @@ bool handleFILLRequest(const char * req) {
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	unsigned int dx = strReq.toInt();
-	if (dx < 0 || dx >= stripledInfos[i_message].stripP->getWidth()-x0)
+	if (dx < 1 || dx > stripledInfos[i_message].stripP->getWidth()-x0)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	unsigned int dy = strReq.toInt();
-	if (dy < 0 || dy >= stripledInfos[i_message].stripP->getHeight()-y0)
+	if (dy < 1 || dy > stripledInfos[i_message].stripP->getHeight()-y0)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
