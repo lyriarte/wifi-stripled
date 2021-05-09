@@ -224,6 +224,7 @@ typedef struct {
 	int strip_index;
 	POLLInfo pollInfo;
 	String text;
+	XBMFont* fontP;
 	int align;
 	int offset;
 } MESSAGEInfo;
@@ -233,6 +234,7 @@ MESSAGEInfo messageInfos[] = {
 		0,
 		{0, MSG_SCROLL_MS},
 		"",
+		NULL,
 		ALIGN_CENTER,
 		0
 	}
@@ -288,7 +290,8 @@ void setup() {
 }
 
 void setMessageDefaults() {
-	stripledInfos[i_message].stripP->setFont(fontPtrs[11]);
+	messageInfos[i_message].fontP = fontPtrs[11];
+	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
 	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
 	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
@@ -534,7 +537,8 @@ bool handleFONTRequest(const char * req) {
 	int index = strReq.toInt();
 	if (index < 0 || index >= N_FONT)
 		return false;
-	stripledInfos[i_message].stripP->setFont(fontPtrs[index]);
+	messageInfos[i_message].fontP = fontPtrs[index];
+	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	updateMessageText(i_message, messageInfos[i_message].text);
 	return true;
 }
@@ -544,10 +548,22 @@ bool handleCHARCODESRequest(const char * req) {
 	int charStart = strReq.toInt();
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int charEnd = strReq.toInt();
-	stripledInfos[i_message].stripP->setAlignment(ALIGN_RIGHT);
+	int w = stripledInfos[i_message].stripP->getWidth();
+	int h = stripledInfos[i_message].stripP->getHeight();
+	CRGB bg = CRGB(0,0,0);
+	CRGB fg = CRGB(4,4,4);
 	for (int i=charStart; i<=charEnd; i++) {
-		stripledInfos[i_message].stripP->setText(String(i) + " " + String((char)i));
-		stripledInfos[i_message].stripP->displayText();
+		stripledInfos[i_message].stripP->fillBitmap(0, 0, w, h, bg);
+		stripledInfos[i_message].stripP->setFont(&fixedMedium_4x6);
+		stripledInfos[i_message].stripP->setText(String(i));
+		stripledInfos[i_message].stripP->renderText(0,0,fg);
+		stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
+		stripledInfos[i_message].stripP->setText(String((char) i));
+		stripledInfos[i_message].stripP->renderText(
+			w - (messageInfos[i_message].fontP->getWidth() + 1), 
+			(h - messageInfos[i_message].fontP->getHeight()) / 2, 
+			fg);
+		stripledInfos[i_message].stripP->displayBitmap();
 		FastLED.delay(messageInfos[i_message].pollInfo.poll_ms);
 	}
 	stripledInfos[i_message].stripP->setAlignment(messageInfos[i_message].align);
