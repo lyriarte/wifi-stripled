@@ -539,6 +539,21 @@ bool handleFONTRequest(const char * req) {
 	return true;
 }
 
+bool handleCHARCODESRequest(const char * req) {
+	String strReq = req;
+	int charStart = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int charEnd = strReq.toInt();
+	stripledInfos[i_message].stripP->setAlignment(ALIGN_RIGHT);
+	for (int i=charStart; i<=charEnd; i++) {
+		stripledInfos[i_message].stripP->setText(String(i) + " " + String((char)i));
+		stripledInfos[i_message].stripP->displayText();
+		FastLED.delay(messageInfos[i_message].pollInfo.poll_ms);
+	}
+	stripledInfos[i_message].stripP->setAlignment(messageInfos[i_message].align);
+	return true;
+}
+
 bool handleSTRIPLEDRequest(const char * req) {
 	String strReq = req;
 	int index = strReq.toInt();
@@ -716,6 +731,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleSTRIPRequest(strReq.substring(6).c_str());
 	else if (strReq.startsWith("FONT/"))
 		result = handleFONTRequest(strReq.substring(5).c_str());
+	else if (strReq.startsWith("CHARCODES/"))
+		result = handleCHARCODESRequest(strReq.substring(10).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
