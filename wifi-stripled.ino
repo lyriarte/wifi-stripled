@@ -77,6 +77,9 @@ StripLEDPanel panels_0[] = {
 #define MSG_SCROLL_MS 50
 #define MSG_SCROLL_OFFSET -10
 
+#define ANIM_ROTATE_MS 50
+#define ANIM_CHARCODES_MS 500
+
 /* **** **** **** **** **** ****
  * Global variables
  * **** **** **** **** **** ****/
@@ -247,7 +250,8 @@ int i_message = 0;
  
  enum {
 	ANIM_NONE,
-	ANIM_ROTATE
+	ANIM_ROTATE,
+	ANIM_CHARCODES
 };
 
 typedef struct {
@@ -266,6 +270,29 @@ ANIMInfo animInfos[] = {
 		1,
 		{0, MSG_SCROLL_MS},
 		ANIM_NONE
+	}
+};
+
+/*
+ * CHARCODES
+ */
+ 
+typedef struct {
+	ANIMInfo * animInfoP;
+	int charNext;
+	int charEnd;
+} CHARCODESInfo;
+
+CHARCODESInfo charcodesInfos[] = {
+	{
+		&animInfos[0],
+		0,
+		255
+	},
+	{
+		&animInfos[1],
+		0,
+		255
 	}
 };
 
@@ -492,12 +519,37 @@ void rotateStripledDisplay(int index) {
 	stripledInfos[index].stripP->getLeds()[stripledCount(&stripledInfos[index])-1] = carry;
 }
 
+void updateCharcodes(int index) {
+	int w = stripledInfos[index].stripP->getWidth();
+	int h = stripledInfos[index].stripP->getHeight();
+	CRGB bg = CRGB(0,0,0);
+	CRGB fg = CRGB(4,4,4);
+	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
+	stripledInfos[index].stripP->setFont(&fixedMedium_4x6);
+	stripledInfos[index].stripP->setText(String(charcodesInfos[index].charNext));
+	stripledInfos[index].stripP->renderText(0,0,fg);
+	stripledInfos[index].stripP->setFont(messageInfos[index].fontP);
+	stripledInfos[index].stripP->setText(String((char) charcodesInfos[index].charNext));
+	stripledInfos[index].stripP->renderText(
+		w - (messageInfos[index].fontP->getWidth() + 1), 
+		(h - messageInfos[index].fontP->getHeight()) / 2, 
+		fg);
+	stripledInfos[index].stripP->displayBitmap();
+	stripledInfos[index].stripP->setAlignment(messageInfos[index].align);
+	if (charcodesInfos[index].charNext >= charcodesInfos[index].charEnd)
+		charcodesInfos[index].animInfoP->kind = ANIM_NONE;
+	charcodesInfos[index].charNext++;
+}
+
 void updateAnimation(int index) {
 	if (animInfos[index].kind == ANIM_NONE || !updatePollInfo(&(animInfos[index].pollInfo)))
 		return;
 	switch (animInfos[index].kind) {
 		case ANIM_ROTATE:
 			rotateStripledDisplay(animInfos[index].strip_index);
+			break;
+		case ANIM_CHARCODES:
+			updateCharcodes(animInfos[index].strip_index);
 			break;
 	}
 }
@@ -545,28 +597,9 @@ bool handleFONTRequest(const char * req) {
 
 bool handleCHARCODESRequest(const char * req) {
 	String strReq = req;
-	int charStart = strReq.toInt();
+	charcodesInfos[i_message].charNext = strReq.toInt();
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	int charEnd = strReq.toInt();
-	int w = stripledInfos[i_message].stripP->getWidth();
-	int h = stripledInfos[i_message].stripP->getHeight();
-	CRGB bg = CRGB(0,0,0);
-	CRGB fg = CRGB(4,4,4);
-	for (int i=charStart; i<=charEnd; i++) {
-		stripledInfos[i_message].stripP->fillBitmap(0, 0, w, h, bg);
-		stripledInfos[i_message].stripP->setFont(&fixedMedium_4x6);
-		stripledInfos[i_message].stripP->setText(String(i));
-		stripledInfos[i_message].stripP->renderText(0,0,fg);
-		stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
-		stripledInfos[i_message].stripP->setText(String((char) i));
-		stripledInfos[i_message].stripP->renderText(
-			w - (messageInfos[i_message].fontP->getWidth() + 1), 
-			(h - messageInfos[i_message].fontP->getHeight()) / 2, 
-			fg);
-		stripledInfos[i_message].stripP->displayBitmap();
-		FastLED.delay(messageInfos[i_message].pollInfo.poll_ms);
-	}
-	stripledInfos[i_message].stripP->setAlignment(messageInfos[i_message].align);
+	charcodesInfos[i_message].charEnd = strReq.toInt();
 	return true;
 }
 
@@ -636,8 +669,14 @@ bool handleFILLRequest(const char * req) {
 bool handleANIMRequest(const char * req) {
 	String strReq = req;
 	animInfos[i_stripled].kind = ANIM_NONE;
-	if (strReq == "ROTATE")
+	if (strReq == "ROTATE") {
 		animInfos[i_stripled].kind = ANIM_ROTATE;
+		animInfos[i_stripled].pollInfo.poll_ms = ANIM_ROTATE_MS;
+	}
+	else if (strReq == "CHARCODES") {
+		animInfos[i_stripled].kind = ANIM_CHARCODES;
+		animInfos[i_stripled].pollInfo.poll_ms = ANIM_CHARCODES_MS;
+	}
 	return true;
 }
 
