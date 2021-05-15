@@ -314,25 +314,24 @@ typedef struct {
 } SPRITEState;
 
 typedef struct {
-	SPRITEState * spriteStatePtrs[];
+	SPRITEState * spriteStates;
 	int nStates;
 	int nStep;
 	int currStep;
-	int x;
-	int y;
-	int dx;
-	int dy;
+	int x0; int y0;
+	int x; int y;
+	int dx;	int dy;
 } SPRITE_ANIM_Phase;
 
 typedef struct {
-	SPRITE_ANIM_Phase * animPhasePtrs[];
+	SPRITE_ANIM_Phase * animPhases;
 	int nPhases;
 	int phase;
 } SPRITE_ANIM_PHASE_List;
 
 typedef struct {
 	ANIMInfo * animInfoP;
-	SPRITE_ANIM_PHASE_List * spriteAnimPhaseListPtrs[];
+	SPRITE_ANIM_PHASE_List * spriteAnimations;
 	int nSprites;
 } SPRITESInfo;
 
@@ -580,6 +579,18 @@ void updateCharcodes(int index) {
 	charcodesInfos[index].charNext++;
 }
 
+void resetSprites(int index) {
+	for (int iSprite = 0; iSprite < spritesInfos[index].nSprites; iSprite++) {
+		spritesInfos[index].spriteAnimations[iSprite].phase = 0;
+		for (int iPhase = 0; iPhase < spritesInfos[index].spriteAnimations[iSprite].nPhases; iPhase++) {
+			SPRITE_ANIM_Phase * animPhaseP = &spritesInfos[index].spriteAnimations[iSprite].animPhases[iPhase];
+			animPhaseP->currStep = 0;
+			animPhaseP->x = animPhaseP->x0;
+			animPhaseP->y = animPhaseP->y0;
+		}
+	}
+}
+
 void updateSprites(int index) {
 	int w = stripledInfos[index].stripP->getWidth();
 	int h = stripledInfos[index].stripP->getHeight();
@@ -748,8 +759,10 @@ bool handleANIMRequest(const char * req) {
 		animInfos[i_stripled].pollInfo.poll_ms = ANIM_CHARCODES_MS;
 	}
 	else if (strReq == "SPRITES") {
+		updateMessageText(i_message, "");
 		animInfos[i_stripled].kind = ANIM_SPRITES;
 		animInfos[i_stripled].pollInfo.poll_ms = ANIM_SPRITES_MS;
+		resetSprites(i_stripled);
 	}
 	return true;
 }
