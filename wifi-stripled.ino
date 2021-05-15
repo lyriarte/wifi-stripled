@@ -585,6 +585,27 @@ void updateSprites(int index) {
 	int h = stripledInfos[index].stripP->getHeight();
 	CRGB bg = CRGB(0,0,0);
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
+	spritesInfos[index].animInfoP->kind = ANIM_NONE;
+	for (int iSprite = 0; iSprite < spritesInfos[index].nSprites; iSprite++) {
+		if (spritesInfos[index].spriteAnimations[iSprite].phase >= 0) {
+			spritesInfos[index].animInfoP->kind = ANIM_SPRITES;
+			SPRITE_ANIM_Phase * animPhaseP = &spritesInfos[index].spriteAnimations[iSprite].animPhases[spritesInfos[index].spriteAnimations[iSprite].phase];
+			SPRITEState * spriteStateP = &animPhaseP->spriteStates[animPhaseP->currStep % animPhaseP->nStates];
+			stripledInfos[index].stripP->renderXpm(animPhaseP->x, animPhaseP->y, 
+				spriteStateP->XBMInfoP->w, spriteStateP->XBMInfoP->h,
+				spriteStateP->XBMInfoP->charBytes,
+				spriteStateP->crgb);
+			animPhaseP->x += animPhaseP->dx;
+			animPhaseP->y += animPhaseP->dy;
+			animPhaseP->currStep++;
+			if (animPhaseP->nStep > 0 && animPhaseP->currStep >= animPhaseP->nStep) {
+				spritesInfos[index].spriteAnimations[iSprite].phase++;
+				if (spritesInfos[index].spriteAnimations[iSprite].phase >= spritesInfos[index].spriteAnimations[iSprite].nPhases)
+					spritesInfos[index].spriteAnimations[iSprite].phase = -1;
+			}
+		}
+	}
+	stripledInfos[index].stripP->displayBitmap();
 }
 
 void updateAnimation(int index) {
