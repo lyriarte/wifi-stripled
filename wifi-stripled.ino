@@ -79,6 +79,7 @@ StripLEDPanel panels_0[] = {
 
 #define ANIM_ROTATE_MS 50
 #define ANIM_CHARCODES_MS 500
+#define ANIM_SPRITES_MS 300
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -251,7 +252,8 @@ int i_message = 0;
  enum {
 	ANIM_NONE,
 	ANIM_ROTATE,
-	ANIM_CHARCODES
+	ANIM_CHARCODES,
+	ANIM_SPRITES
 };
 
 typedef struct {
@@ -296,6 +298,43 @@ CHARCODESInfo charcodesInfos[] = {
 	}
 };
 
+/*
+ * SPRITES
+ */
+ 
+typedef struct {
+	int w;
+	int h;
+	unsigned char * charBytes;
+} XBMInfo;
+
+typedef struct {
+	XBMInfo * XBMInfoP;
+	CRGB crgb;
+} SPRITEState;
+
+typedef struct {
+	SPRITEState * spriteStatePtrs[];
+	int nStates;
+	int nStep;
+	int currStep;
+	int x;
+	int y;
+	int dx;
+	int dy;
+} SPRITE_ANIM_Phase;
+
+typedef struct {
+	SPRITE_ANIM_Phase * animPhasePtrs[];
+	int nPhases;
+	int phase;
+} SPRITE_ANIM_PHASE_List;
+
+typedef struct {
+	ANIMInfo * animInfoP;
+	SPRITE_ANIM_PHASE_List * spriteAnimPhaseListPtrs[];
+	int nSprites;
+} SPRITESInfo;
 
 
 /* **** **** **** **** **** ****
@@ -541,6 +580,13 @@ void updateCharcodes(int index) {
 	charcodesInfos[index].charNext++;
 }
 
+void updateSprites(int index) {
+	int w = stripledInfos[index].stripP->getWidth();
+	int h = stripledInfos[index].stripP->getHeight();
+	CRGB bg = CRGB(0,0,0);
+	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
+}
+
 void updateAnimation(int index) {
 	if (animInfos[index].kind == ANIM_NONE || !updatePollInfo(&(animInfos[index].pollInfo)))
 		return;
@@ -550,6 +596,9 @@ void updateAnimation(int index) {
 			break;
 		case ANIM_CHARCODES:
 			updateCharcodes(animInfos[index].strip_index);
+			break;
+		case ANIM_SPRITES:
+			updateSprites(animInfos[index].strip_index);
 			break;
 	}
 }
@@ -676,6 +725,10 @@ bool handleANIMRequest(const char * req) {
 	else if (strReq == "CHARCODES") {
 		animInfos[i_stripled].kind = ANIM_CHARCODES;
 		animInfos[i_stripled].pollInfo.poll_ms = ANIM_CHARCODES_MS;
+	}
+	else if (strReq == "SPRITES") {
+		animInfos[i_stripled].kind = ANIM_SPRITES;
+		animInfos[i_stripled].pollInfo.poll_ms = ANIM_SPRITES_MS;
 	}
 	return true;
 }
