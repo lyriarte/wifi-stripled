@@ -23,6 +23,15 @@
 #include "XBMFont.h"
 #include "qdbmp.h"
 
+#include "space_invader_01.h"
+#include "space_invader_02.h"
+#include "space_invader_03.h"
+#include "space_invader_04.h"
+#include "space_invader_05.h"
+#include "space_invader_06.h"
+#include "space_invader_07.h"
+
+
 /* **** **** **** **** **** ****
  * Constants
  * **** **** **** **** **** ****/
@@ -308,10 +317,40 @@ typedef struct {
 	unsigned char * charBytes;
 } XBMInfo;
 
+XBMInfo XBMSprites[] = {
+	{space_invader_01_width, space_invader_01_height, (unsigned char *)space_invader_01_bits},
+	{space_invader_02_width, space_invader_02_height, (unsigned char *)space_invader_02_bits},
+	{space_invader_03_width, space_invader_03_height, (unsigned char *)space_invader_03_bits},
+	{space_invader_04_width, space_invader_04_height, (unsigned char *)space_invader_04_bits},
+	{space_invader_05_width, space_invader_05_height, (unsigned char *)space_invader_05_bits},
+	{space_invader_06_width, space_invader_06_height, (unsigned char *)space_invader_06_bits},
+	{space_invader_07_width, space_invader_07_height, (unsigned char *)space_invader_07_bits}
+};
+
 typedef struct {
 	XBMInfo * XBMInfoP;
 	CRGB crgb;
 } SPRITEState;
+
+SPRITEState alien1_states[] = {
+	{&XBMSprites[0], CRGB(4,2,0)}, // space_invader_01, yellow (alien 1)
+	{&XBMSprites[1], CRGB(4,2,0)}  // space_invader_02, yellow
+};
+
+SPRITEState alien2_states[] = {
+	{&XBMSprites[2], CRGB(2,0,4)}, // space_invader_03, lavender (alien 2)
+	{&XBMSprites[3], CRGB(2,0,4)}  // space_invader_04, lavender
+};
+
+SPRITEState alien3_states[] = {
+	{&XBMSprites[4], CRGB(12,2,0)}, // space_invader_05, orange (alien 3)
+	{&XBMSprites[5], CRGB(12,2,0)}  // space_invader_06, orange
+};
+
+SPRITEState mothership_states[] = {
+	{&XBMSprites[6], CRGB(2,4,0)}, // space_invader_07, lime (flying saucer)
+	{&XBMSprites[6], CRGB(0,2,4)}  // space_invader_07, cyan
+};
 
 typedef struct {
 	SPRITEState * spriteStates;
@@ -323,17 +362,188 @@ typedef struct {
 	int dx;	int dy;
 } SPRITE_ANIM_Phase;
 
+SPRITE_ANIM_Phase alien1phases[] = {
+	{
+		alien1_states, 
+		2, // nStates
+		48, 0, // 48 steps
+		48,-1, 0,0, -1,0 // scroll left 48 to 0
+	},
+	{
+		alien1_states, 
+		2, // nStates
+		16, 0, // 16 steps
+		0,-1, 0,0, 0,0 // static at 0,-1
+	},
+	{
+		alien1_states, 
+		2, // nStates
+		8, 0, // 8 steps
+		0,-1, 0,0, 0,1 // down to 0,7
+	},
+	{
+		alien1_states, 
+		2, // nStates
+		-1, 0, // infinite steps
+		0,7, 0,0, 0,0 // static at 0,7
+	}
+};
+
+SPRITE_ANIM_Phase alien2phases[] = {
+	{
+		alien2_states, 
+		2, // nStates
+		48, 0, // 48 steps
+		64,-1, 0,0, -1,0 // scroll left 64 to 16
+	},
+	{
+		alien2_states, 
+		2, // nStates
+		16, 0, // 16 steps
+		16,-1, 0,0, 0,0 // static at 16,-1
+	},
+	{
+		alien2_states, 
+		2, // nStates
+		8, 0, // 8 steps
+		16,-1, 0,0, 0,1 // down to 16,7
+	},
+	{
+		alien2_states, 
+		2, // nStates
+		-1, 0, // infinite
+		16,7, 0,0, 0,0 // static at 16,7
+	}
+};
+
+SPRITE_ANIM_Phase alien3_1_phases[] = {
+	{
+		alien3_states, 2, 
+		14, 0, // 14 steps
+		-16,-1, 0,0, 1,0 // right -16 to -2
+	},
+	{
+		alien3_states, 2, 
+		8, 0, // 8 steps
+		-2,-1, 0,0, 0,1 // down to -2, 7
+	},
+	{
+		alien3_states, 2,
+		32, 0, // 32 steps
+		-2, 7, 0,0, 0,0 // static at -2, 7
+	},
+	{
+		alien3_states, 2, 
+		8, 0, // 8 steps
+		-2,7, 0,0, 0,1 // disappear down
+	}
+};
+
+SPRITE_ANIM_Phase alien3_2_phases[] = {
+	{
+		alien3_states, 2, 
+		22, 0, // 22 steps
+		8,-15, 0,0, 0,1 // down to 8, 7
+	},
+	{
+		alien3_states, 2,
+		32, 0, // 32 steps
+		8, 7, 0,0, 0,0 // static at 8, 7
+	},
+	{
+		alien3_states, 2, 
+		8, 0, // 8 steps
+		8,7, 0,0, 0,1 // disappear down
+	}
+};
+
+SPRITE_ANIM_Phase alien3_3_phases[] = {
+	{
+		alien3_states, 2, 
+		14, 0, // 14 steps
+		32,-1, 0,0, -1,0 // left 32 to 18
+	},
+	{
+		alien3_states, 2, 
+		8, 0, // 8 steps
+		18,-1, 0,0, 0,1 // down to 18, 7
+	},
+	{
+		alien3_states, 2,
+		32, 0, // 32 steps
+		18, 7, 0,0, 0,0 // static at 18, 7
+	},
+	{
+		alien3_states, 2, 
+		8, 0, // 8 steps
+		18,7, 0,0, 0,1 // disappear down
+	}
+};
+
+SPRITE_ANIM_Phase mothership_phases[] = {
+	{
+		mothership_states, 2, 
+		64, 0, // 64 steps
+		8,-9, 0,0, 0,0 // hide at 8,-9
+	},
+	{
+		mothership_states, 2, 
+		8, 0, // 8 steps
+		8,-9, 0,0, 0,1 // down to 8, -1
+	},
+	{
+		mothership_states, 2,
+		-1, 0, // infinite
+		8, -1, 0,0, 0,0 // static at 8, -1
+	}
+};
+
 typedef struct {
 	SPRITE_ANIM_Phase * animPhases;
 	int nPhases;
 	int phase;
 } SPRITE_ANIM_PHASE_List;
 
+SPRITE_ANIM_PHASE_List invaderAnimations[] = {
+  {
+    alien1phases,
+    4, 0, // 4 phases
+  },
+  {
+    alien2phases,
+    4, 0, // 4 phases
+  },
+  {
+    alien3_1_phases,
+    4, 0, // 4 phases
+  },
+  {
+    alien3_2_phases,
+    3, 0, // 3 phases
+  },
+  {
+    alien3_3_phases,
+    4, 0, // 4 phases
+  },
+  {
+    mothership_phases,
+    3, 0, // 3 phases
+  }
+};
+
 typedef struct {
 	ANIMInfo * animInfoP;
 	SPRITE_ANIM_PHASE_List * spriteAnimations;
 	int nSprites;
 } SPRITESInfo;
+
+SPRITESInfo spritesInfos[] = {
+  {
+    &animInfos[0],
+    invaderAnimations,
+    6	// 6 sprites
+  }
+};
 
 
 /* **** **** **** **** **** ****
