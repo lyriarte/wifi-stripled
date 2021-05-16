@@ -335,6 +335,9 @@ typedef struct {
 	int nSprites;
 } SPRITESInfo;
 
+SPRITESInfo spritesInfos[] = {
+};
+
 
 /* **** **** **** **** **** ****
  * Functions
