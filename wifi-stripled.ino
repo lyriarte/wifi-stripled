@@ -75,7 +75,7 @@ StripLEDPanel panels_0[] = {
 
 #define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 50
-#define MSG_SCROLL_OFFSET -10
+#define MSG_SCROLL_CHARS 2
 
 #define ANIM_ROTATE_MS 50
 #define ANIM_CHARCODES_MS 500
@@ -513,7 +513,7 @@ void updateMessageScroll(int index) {
     return;
 	messageInfos[index].offset = messageInfos[index].offset + 1;
 	if (messageInfos[index].offset >= stripledInfos[index].stripP->getTextWidth())
-		messageInfos[index].offset = MSG_SCROLL_OFFSET;
+		messageInfos[index].offset = -messageInfos[index].fontP->getWidth()*MSG_SCROLL_CHARS;
 	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
@@ -521,9 +521,9 @@ void updateMessageText(int index, String text) {
 	messageInfos[index].text = text;
 	messageInfos[index].offset = 0;
 	stripledInfos[index].stripP->setText(text);
-	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 	if (stripledInfos[index].stripP->getTextWidth() > stripledInfos[index].stripP->getWidth())
-		FastLED.delay(MSG_SCROLL_START_MS);
+		messageInfos[index].offset = -messageInfos[index].fontP->getWidth()*MSG_SCROLL_CHARS;
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 void updateMessageAlign(int index, int align) {
