@@ -14,11 +14,15 @@
 
 <script type="text/javascript">
 
-var host = "192.168.16.113";
+var host = "192.168.0.113";
 var strip = "0";
 var ledmin = "0";
 var ledmax = "425";
 var rgbmax = "16";
+var x = "0";
+var y = "0";
+var dx = "71";
+var dy = "6";
 var rndCmdInterval = null;
 
 
@@ -71,6 +75,10 @@ function updateGlobals() {
 	strip = document.getElementById("strip__Txt").value;
 	ledmin = document.getElementById("ledmin__Txt").value;
 	ledmax = document.getElementById("ledmax__Txt").value;
+	x = document.getElementById("x__Txt").value;
+	y = document.getElementById("y__Txt").value;
+	dx = document.getElementById("dx__Txt").value;
+	dy = document.getElementById("dy__Txt").value;
 }
 
 
@@ -137,6 +145,14 @@ function rainbow() {
 	sendCommand(host,'/GRADIENT/' + 0 + '/' + "100000" + '/' + Math.floor(ledmax/3) + '/' + "001000");
 	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax/3) + '/' + "001000" + '/' + Math.floor(ledmax*2/3) + '/' + "000010");
 	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000010" + '/' + ledmax + '/' + "100000");
+}
+
+function fillCommand() {
+	updateGlobals();
+	sendCommand(host, "/FILL" 
+		+ "/" + x + "/" + y 
+		+ "/" + dx + "/" + dy 
+		+ "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
 
@@ -245,6 +261,40 @@ function rainbow() {
     <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="ledmax__Fld">
       <input class="mdl-textfield__input" type="text" id="ledmax__Txt" onchange="updateGlobals()">
       <label class="mdl-textfield__label" for="ledmax__Fld">led max</label>
+    </div>
+  </div>  
+
+
+
+  <div class="mdl-cell mdl-cell--4-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="FILL" onClick="fillCommand()"/>
+  </div>
+  
+  <div class="mdl-cell mdl-cell--2-col">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="x__Fld">
+      <input class="mdl-textfield__input" type="text" id="x__Txt" value="0" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="x__Fld">x</label>
+    </div>
+  </div>  
+
+  <div class="mdl-cell mdl-cell--2-col">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="y__Fld">
+      <input class="mdl-textfield__input" type="text" id="y__Txt" value="0" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="y__Fld">y</label>
+    </div>
+  </div>  
+  
+  <div class="mdl-cell mdl-cell--2-col">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="dx__Fld">
+      <input class="mdl-textfield__input" type="text" id="dx__Txt" value="71" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="dx__Fld">dx</label>
+    </div>
+  </div>  
+
+  <div class="mdl-cell mdl-cell--2-col">
+    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label" id="dy__Fld">
+      <input class="mdl-textfield__input" type="text" id="dy__Txt" value="6" onchange="updateGlobals()">
+      <label class="mdl-textfield__label" for="dy__Fld">dy</label>
     </div>
   </div>  
 
