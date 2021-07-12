@@ -498,6 +498,14 @@ bool handleLEDRequest(const char * req) {
 		ledInfos[index].blink_on_ms = ledInfos[index].pollInfo.poll_ms;
 		return true;
 	}
+	if (strReq.endsWith("ON")) {
+		ledInfos[index].blink = 0;
+		ledInfos[index].state = HIGH;
+	}
+	else if (strReq.endsWith("OFF")) {
+		ledInfos[index].blink = 0;
+		ledInfos[index].state = LOW;
+	}
 	else
 		return false;
 	return true;
