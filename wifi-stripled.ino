@@ -869,6 +869,16 @@ void replyHttpError(String strError) {
 	wifiClient.println();
 }
 
+void replyJsonStatus(String jsonStatus) {
+	wifiClient.println("HTTP/1.1 200 OK");
+	wifiClient.println("Content-Type: application/json");
+	wifiClient.println("Access-Control-Allow-Origin: *");
+	wifiClient.println("Connection: close");
+	wifiClient.println();
+	wifiClient.print(jsonStatus);
+	wifiClient.println();
+}
+
 bool dispatchHttpRequest(const char * req) {
   String strReq = req;
 	bool result = false;
@@ -916,6 +926,10 @@ bool handleHttpRequest(const char * req) {
 	if (! strReq.startsWith("GET /"))
 		return false;
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
+	if (strReq.startsWith("STATUS")) {
+		replyJsonStatus(getJsonStatus());
+		return true;
+	}
 	bool result = dispatchHttpRequest(strReq.c_str());
 	if (result)
 		replyHttpSuccess(strReq);
@@ -949,6 +963,19 @@ void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsign
  * Main loop
  */
 
+
+String getJsonStatus() {;
+	String jsonStatus = "{";
+	int deviceIndex;
+	jsonStatus += "\"  LED\":[";
+	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++) {
+		if (deviceIndex) jsonStatus += ",";
+		jsonStatus += ledInfos[deviceIndex].state == HIGH ? "1" : "0";
+	}
+	jsonStatus += "]";
+	jsonStatus += "}";
+	return jsonStatus;
+}
 
 void updateStatus() {
 	int deviceIndex;
