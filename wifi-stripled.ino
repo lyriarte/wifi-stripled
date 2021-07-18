@@ -967,7 +967,7 @@ void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsign
 String getJsonStatus() {;
 	String jsonStatus = "{";
 	int deviceIndex;
-	jsonStatus += "\"  LED\":[";
+	jsonStatus += "  \"LED\":[";
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++) {
 		if (deviceIndex) jsonStatus += ",";
 		jsonStatus += ledInfos[deviceIndex].state == HIGH ? "1" : "0";
