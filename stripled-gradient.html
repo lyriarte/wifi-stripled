@@ -185,20 +185,24 @@ function fillCommand() {
   </label>
   </div>
 
-  <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="RAINBOW" onClick="rainbow()"/>
+  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="RAINBOW" onClick="rainbow()" style="width:95%"/>
   </div>
   
-  <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand(ledmin,ledmax,'FFA080','FFFFFF')"/>
+  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand(ledmin,ledmax,'FFA080','FFFFFF')" style="width:95%"/>
   </div>
   
-  <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand(ledmin,ledmax,'A03010','804010')"/>
+  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="WARM" onClick="gradientCommand(ledmin,ledmax,'A03010','804010')" style="width:95%"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--2-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand(ledmin,ledmax,'000000','000000')"/>
+  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="DIM" onClick="gradientCommand(ledmin,ledmax,'040201','020100')" style="width:95%"/>
+  </div>
+
+  <div class="mdl-cell mdl-cell--4-col">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand(ledmin,ledmax,'000000','000000')" style="width:95%"/>
   </div>
 
 
