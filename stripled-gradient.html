@@ -147,6 +147,14 @@ function rainbow() {
 	sendCommand(host,'/GRADIENT/' + Math.floor(ledmax*2/3) + '/' + "000010" + '/' + ledmax + '/' + "100000");
 }
 
+function check() {
+  updateGlobals();
+  sendCommand(host,'/GRADIENT/' + 0 + '/' + "100000" + '/' + 3 + '/' + "001000");
+  sendCommand(host,'/GRADIENT/' + 3 + '/' + "001000" + '/' + 6 + '/' + "000010");
+  sendCommand(host,'/GRADIENT/' + 6 + '/' + "000010" + '/' + 9 + '/' + "100000");
+  sendCommand(host,"/ANIM/ROTATE");
+}
+
 function fillCommand() {
 	updateGlobals();
 	sendCommand(host, "/FILL" 
@@ -190,6 +198,10 @@ function fillCommand() {
   </div>
   
   <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="CHECK" onClick="check()" style="width:95%"/>
+  </div>
+  
+  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="BRIGHT" onClick="gradientCommand(ledmin,ledmax,'FFA080','FFFFFF')" style="width:95%"/>
   </div>
   
@@ -201,8 +213,8 @@ function fillCommand() {
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="DIM" onClick="gradientCommand(ledmin,ledmax,'040201','020100')" style="width:95%"/>
   </div>
 
-  <div class="mdl-cell mdl-cell--4-col">
-	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand(ledmin,ledmax,'000000','000000')" style="width:95%"/>
+  <div class="mdl-cell mdl-cell--12-col mdl-cell--2-col-phone">
+	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="OFF" onClick="gradientCommand(ledmin,ledmax,'000000','000000')" style="width:98%"/>
   </div>
 
 
