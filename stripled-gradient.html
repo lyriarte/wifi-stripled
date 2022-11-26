@@ -99,9 +99,15 @@ function rgbSliders(relem,gelem,belem) {
 
 function updateColor() {
 	updateGlobals();
-	sendCommand(host, "/GRADIENT" 
-		+ "/" + ledmin + "/" + rgbSliders("rrSlider","grSlider","brSlider")
-		+ "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
+	if (document.getElementById("textCheck").checked) {
+    sendCommand(host, "/BG" 
+      + "/" + rgbSliders("rrSlider","grSlider","brSlider"));
+    sendCommand(host, "/FG" 
+      + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
+	} else
+    sendCommand(host, "/GRADIENT" 
+      + "/" + ledmin + "/" + rgbSliders("rrSlider","grSlider","brSlider")
+      + "/" + ledmax + "/" + rgbSliders("rlSlider","glSlider","blSlider"));
 }
 
 function rnd24(rgbmax) {
@@ -181,6 +187,13 @@ function fillCommand() {
   <main class="mdl-grid">
 
   <div class="mdl-cell mdl-cell--2-col">
+  <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="textCheck" id="switchTextCheck">
+    <input type="checkbox" id="textCheck" class="mdl-switch__input">
+    <span class="mdl-switch__label">Text</span>
+  </label>
+  </div>
+
+  <div class="mdl-cell mdl-cell--2-col">
   <label class="mdl-switch mdl-js-switch mdl-js-ripple-effect" for="randomCheck" id="switchRandomCheck">
     <input type="checkbox" id="randomCheck" class="mdl-switch__input" onchange="toggleRandom()">
     <span class="mdl-switch__label">Random</span>
@@ -194,11 +207,11 @@ function fillCommand() {
   </label>
   </div>
 
-  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="RAINBOW" onClick="rainbow()" style="width:95%"/>
   </div>
   
-  <div class="mdl-cell mdl-cell--4-col mdl-cell--2-col-phone">
+  <div class="mdl-cell mdl-cell--3-col mdl-cell--2-col-phone">
 	<input type="button" class="mdl-button mdl-js-button mdl-button--raised" value="CHECK" onClick="check()" style="width:95%"/>
   </div>
   
