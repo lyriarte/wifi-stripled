@@ -5,6 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <DHT.h>
 
 #define FONT_4x6_FIXED_MEDIUM
 #define FONT_5x6_FIXED_MEDIUM
@@ -197,6 +198,26 @@ int stripledCount(STRIPLEDInfo * stripledInfosP) {
 int i_stripled = N_STRIPLED-1;
 
 /*
+ * TEMPERATURE
+ */
+ 
+typedef struct {
+	DHT * dhtP;
+	int dht_gpio;
+	int dht_type;
+} TEMPERATUREInfo;
+
+TEMPERATUREInfo temperatureInfos[] = {
+	{
+		NULL,
+		12,	// D6
+		DHT22
+	}
+};
+
+#define N_TEMPERATURE (sizeof(temperatureInfos) / sizeof(TEMPERATUREInfo))
+
+/*
  * LED
  */
  
@@ -349,6 +370,10 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
+	for (i=0; i < N_TEMPERATURE; i++) {
+		temperatureInfos[i].dhtP = new DHT(temperatureInfos[i].dht_gpio,temperatureInfos[i].dht_type);
+		temperatureInfos[i].dhtP->begin();
+	}
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
@@ -981,6 +1006,12 @@ String getJsonStatus() {;
 		jsonStatus += ledInfos[deviceIndex].state == HIGH ? "1" : "0";
 	}
 	jsonStatus += "]";
+        jsonStatus += ",  \"TEMPERATURE\":[";
+        for (deviceIndex=0; deviceIndex<N_TEMPERATURE; deviceIndex++) {
+                if (deviceIndex) jsonStatus += ",";
+                jsonStatus += String(temperatureInfos[deviceIndex].dhtP->readTemperature());
+        }
+        jsonStatus += "]";
 	jsonStatus += "}";
 	return jsonStatus;
 }
