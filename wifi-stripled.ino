@@ -1008,8 +1008,11 @@ String getJsonStatus() {;
 	jsonStatus += "]";
         jsonStatus += ",  \"TEMPERATURE\":[";
         for (deviceIndex=0; deviceIndex<N_TEMPERATURE; deviceIndex++) {
+                float temp = temperatureInfos[deviceIndex].dhtP->readTemperature();
+                if (isnan(temp))
+                        continue;
                 if (deviceIndex) jsonStatus += ",";
-                jsonStatus += String(temperatureInfos[deviceIndex].dhtP->readTemperature());
+                jsonStatus += String(temp);
         }
         jsonStatus += "]";
 	jsonStatus += "}";
