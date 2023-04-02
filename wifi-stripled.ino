@@ -43,6 +43,9 @@
 #define MAIN_LOOP_POLL_MS 10
 #define MINIMUM_UPDATE_MS 2
 
+const CRGB RGB_BLACK = CRGB(0,0,0);
+const CRGB RGB_FRONT = CRGB(3,2,1);
+
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
@@ -388,8 +391,8 @@ void setMessageDefaults() {
 	messageInfos[i_message].fontP = fontPtrs[11];
 	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
-	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
+	stripledInfos[i_message].stripP->setFgColor(RGB_FRONT);
 }
 
 /*
@@ -598,8 +601,8 @@ void rotateStripledDisplay(int index) {
 void updateCharcodes(int index) {
 	int w = stripledInfos[index].stripP->getWidth();
 	int h = stripledInfos[index].stripP->getHeight();
-	CRGB bg = CRGB(0,0,0);
-	CRGB fg = CRGB(4,4,4);
+	CRGB bg = RGB_BLACK;
+	CRGB fg = RGB_FRONT;
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
 	stripledInfos[index].stripP->setFont(&fixedMedium_4x6);
 	stripledInfos[index].stripP->setText(String(charcodesInfos[index].charNext));
@@ -632,7 +635,7 @@ void resetSprites(int index) {
 void updateSprites(int index) {
 	int w = stripledInfos[index].stripP->getWidth();
 	int h = stripledInfos[index].stripP->getHeight();
-	CRGB bg = CRGB(0,0,0);
+	CRGB bg = RGB_BLACK;
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
 	spritesInfos[index].animInfoP->kind = ANIM_NONE;
 	for (int iSprite = 0; iSprite < spritesInfos[index].nSprites; iSprite++) {
@@ -862,7 +865,7 @@ bool handleSSIDRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
 	stripledInfos[i_message].stripP->setFgColor(CRGB(8,0,16));
 	updateMessageText(i_message, networks[i_network].SSID);
 	return true;
@@ -872,7 +875,7 @@ bool handleIPRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
 	stripledInfos[i_message].stripP->setFgColor(CRGB(0,8,16));
 	updateMessageText(i_message, networks[i_network].address.toString());
 	return true;
