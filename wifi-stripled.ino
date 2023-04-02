@@ -183,7 +183,6 @@ typedef struct {
 STRIPLEDInfo stripledInfos[] = {
 	{
 	new StripDisplay(
-		STRIPLED_GPIO_0,
 		BITMAP_W_0,
 		BITMAP_H_0,
 		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0*sizeof(CRGB)),
