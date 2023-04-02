@@ -866,7 +866,7 @@ bool handleSSIDRequest() {
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
 	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
-	stripledInfos[i_message].stripP->setFgColor(CRGB(8,0,16));
+	stripledInfos[i_message].stripP->setFgColor(CRGB(1,0,2));
 	updateMessageText(i_message, networks[i_network].SSID);
 	return true;
 }
@@ -876,7 +876,7 @@ bool handleIPRequest() {
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
 	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
-	stripledInfos[i_message].stripP->setFgColor(CRGB(0,8,16));
+	stripledInfos[i_message].stripP->setFgColor(CRGB(0,1,2));
 	updateMessageText(i_message, networks[i_network].address.toString());
 	return true;
 }
