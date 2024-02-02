@@ -68,7 +68,7 @@ function updateColor(rgb) {
 <input type="text" style="width:70%" id="MESSAGE" onchange="sendCommand('/MSG/'+escape(document.getElementById('MESSAGE').value))"/>
 <br>
 <input type="button" style="width:20%" value="BG" onclick="sendCommand('/BG/'+document.getElementById('COLOR').value)"/>
-<input type="text" style="width:50%;text-align:center" id="COLOR" value="0f0f0f" onchange="updateColor(document.getElementById('COLOR').value)"/>
+<input type="text" style="width:50%;text-align:center" id="COLOR" value="010101" onchange="updateColor(document.getElementById('COLOR').value)"/>
 <input type="button" style="width:20%" value="FG" onclick="sendCommand('/FG/'+document.getElementById('COLOR').value)"/>
 <br>
 <input type="button" style="width:10%" value="+" onclick="incrementColor('RED', 1)">
