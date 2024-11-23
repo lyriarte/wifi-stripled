@@ -379,9 +379,11 @@ void setup() {
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
+#ifdef STRIPLED_SCREEN
 	stripledInfos[0].stripP->setup(fontPtrs[0]);
 	stripledInfos[0].stripP->setText(wifiMacStr);
 	setMessageDefaults();
+#endif
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
@@ -1028,7 +1030,9 @@ void updateStatus() {
 	for (deviceIndex=0; deviceIndex<N_STRIPLED; deviceIndex++) {
 		updateAnimation(deviceIndex);
 	}
+#ifdef STRIPLED_SCREEN
 	updateMessageScroll(i_message);
+#endif
 }
 
 void delayWithUpdateStatus(int delay_ms) {
