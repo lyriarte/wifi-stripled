@@ -270,6 +270,9 @@ MESSAGEInfo messageInfos[] = {
 };
 int i_message = 0;
 
+#define N_MESSAGE (sizeof(messageInfos) / sizeof(MESSAGEInfo))
+
+
 /*
  * ANIM
  */
@@ -1008,6 +1011,12 @@ String getJsonStatus() {;
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++) {
 		if (deviceIndex) jsonStatus += ",";
 		jsonStatus += ledInfos[deviceIndex].state == HIGH ? "1" : "0";
+	}
+	jsonStatus += "]";
+	jsonStatus += ",  \"MSG\":[";
+	for (deviceIndex=0; deviceIndex<N_MESSAGE; deviceIndex++) {
+		if (deviceIndex) jsonStatus += ",";
+		jsonStatus += String("\"") + messageInfos[deviceIndex].text + String("\"");
 	}
 	jsonStatus += "]";
         jsonStatus += ",  \"TEMPERATURE\":[";
