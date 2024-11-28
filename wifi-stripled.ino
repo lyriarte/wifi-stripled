@@ -1086,4 +1086,5 @@ void loop() {
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
 		wifiStatus = WiFi.status();
 	}
+  Serial.println("WiFi disconnected");
 }
