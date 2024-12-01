@@ -68,18 +68,23 @@ function updateColor(rgb) {
 <input type="text" style="width:70%" id="MESSAGE" onchange="sendCommand('/MSG/'+escape(document.getElementById('MESSAGE').value))"/>
 <br>
 <input type="button" style="width:20%" value="BG" onclick="sendCommand('/BG/'+document.getElementById('COLOR').value)"/>
-<input type="text" style="width:50%;text-align:center" id="COLOR" value="0f0f0f" onchange="updateColor(document.getElementById('COLOR').value)"/>
+<input type="text" style="width:50%;text-align:center" id="COLOR" value="010101" onchange="updateColor(document.getElementById('COLOR').value)"/>
 <input type="button" style="width:20%" value="FG" onclick="sendCommand('/FG/'+document.getElementById('COLOR').value)"/>
 <br>
 <input type="button" style="width:10%" value="+" onclick="incrementColor('RED', 1)">
 <input type="button" style="width:10%" value="-" onclick="incrementColor('RED',-1)"/>
-<input type="text" style="width:10%" id="RED" value="0f" onchange="incrementColor('RED',0)"/>
+<input type="text" style="width:10%" id="RED" value="01" onchange="incrementColor('RED',0)"/>
 <input type="button" style="width:10%" value="+" onclick="incrementColor('GREEN', 1)"/>
 <input type="button" style="width:10%" value="-" onclick="incrementColor('GREEN',-1)"/>
-<input type="text" style="width:10%" id="GREEN" value="0f" onchange="incrementColor('GREEN',0)"/>
+<input type="text" style="width:10%" id="GREEN" value="01" onchange="incrementColor('GREEN',0)"/>
 <input type="button" style="width:10%" value="+" onclick="incrementColor('BLUE', 1)"/>
 <input type="button" style="width:10%" value="-" onclick="incrementColor('BLUE',-1)"/>
-<input type="text" style="width:10%" id="BLUE" value="0f" onchange="incrementColor('BLUE',0)"/>
+<input type="text" style="width:10%" id="BLUE" value="01" onchange="incrementColor('BLUE',0)"/>
+<br>
+<input type="button" style="width:35%" value="FONT" onclick="sendCommand('/FONT/'+document.getElementById('FONT').value)"/>
+<input type="text" style="width:10%;text-align:center" id="FONT" value="0"/>
+<input type="button" style="width:35%" value="SCROLL" onclick="sendCommand('/SCROLL/'+document.getElementById('SCROLL').value)"/>
+<input type="text" style="width:10%;text-align:center" id="SCROLL" value="20"/>
 </center>
 </body>
 </html>

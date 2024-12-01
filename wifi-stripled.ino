@@ -5,6 +5,7 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
+#include <DHT.h>
 
 #define FONT_4x6_FIXED_MEDIUM
 #define FONT_5x6_FIXED_MEDIUM
@@ -22,7 +23,6 @@
 
 #include "XBMFont.h"
 #include "qdbmp.h"
-
 #include "space_invader_01.h"
 #include "space_invader_02.h"
 #include "space_invader_03.h"
@@ -30,7 +30,6 @@
 #include "space_invader_05.h"
 #include "space_invader_06.h"
 #include "space_invader_07.h"
-
 
 /* **** **** **** **** **** ****
  * Constants
@@ -48,9 +47,12 @@
 
 #define REQ_BUFFER_SIZE 1024
 
+#define CONNECT_MSG_DELAY_MS 20000
 #define MAIN_LOOP_POLL_MS 10
 #define MINIMUM_UPDATE_MS 2
 
+const CRGB RGB_BLACK = CRGB(0,0,0);
+const CRGB RGB_FRONT = CRGB(3,2,1);
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
@@ -66,7 +68,8 @@ StripLEDPanel panels_0[] = {
 	0,
 	STRIPLED_W_0,
 	STRIPLED_H_0,
-	WRAP_COLUMNS
+	WRAP_COLUMNS,
+	ORIGIN_TOP_LEFT
 },
 {
 	STRIPLED_W_0*STRIPLED_H_0,
@@ -74,7 +77,8 @@ StripLEDPanel panels_0[] = {
 	STRIPLED_H_0,
 	STRIPLED_W_0,
 	STRIPLED_H_0,
-	WRAP_COLUMNS
+	WRAP_COLUMNS,
+	ORIGIN_TOP_LEFT
 }
 };
 
@@ -84,7 +88,7 @@ StripLEDPanel panels_0[] = {
 
 #define MSG_SCROLL_START_MS 3000
 #define MSG_SCROLL_MS 50
-#define MSG_SCROLL_OFFSET -10
+#define MSG_SCROLL_CHARS 2
 
 #define ANIM_ROTATE_MS 50
 #define ANIM_CHARCODES_MS 500
@@ -153,6 +157,9 @@ int wifiStatus = WL_IDLE_STATUS;
 char hostnameSSID[] = "ESP_XXXXXX";
 char wifiMacStr[] = "00:00:00:00:00:00";
 byte wifiMacBuf[6];
+#ifdef STRIPLED_SCREEN
+bool displayingIpAddress = false;
+#endif
 
 /* 
  * http request buffer
@@ -186,7 +193,6 @@ typedef struct {
 STRIPLEDInfo stripledInfos[] = {
 	{
 	new StripDisplay(
-		STRIPLED_GPIO_0,
 		BITMAP_W_0,
 		BITMAP_H_0,
 		(CRGB*) malloc(STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0*sizeof(CRGB)),
@@ -202,6 +208,25 @@ int stripledCount(STRIPLEDInfo * stripledInfosP) {
 
 #define N_STRIPLED (sizeof(stripledInfos) / sizeof(STRIPLEDInfo))
 int i_stripled = N_STRIPLED-1;
+/*
+ * TEMPERATURE
+ */
+ 
+typedef struct {
+	DHT * dhtP;
+	int dht_gpio;
+	int dht_type;
+} TEMPERATUREInfo;
+
+TEMPERATUREInfo temperatureInfos[] = {
+	{
+		NULL,
+		12,	// D6
+		DHT22
+	}
+};
+
+#define N_TEMPERATURE (sizeof(temperatureInfos) / sizeof(TEMPERATUREInfo))
 
 /*
  * LED
@@ -253,6 +278,7 @@ MESSAGEInfo messageInfos[] = {
 	}
 };
 int i_message = 0;
+#define N_MESSAGE (sizeof(messageInfos) / sizeof(MESSAGEInfo))
 
 /*
  * ANIM
@@ -316,7 +342,6 @@ typedef struct {
 	int h;
 	unsigned char * charBytes;
 } XBMInfo;
-
 XBMInfo XBMSprites[] = {
 	{space_invader_01_width, space_invader_01_height, (unsigned char *)space_invader_01_bits},
 	{space_invader_02_width, space_invader_02_height, (unsigned char *)space_invader_02_bits},
@@ -361,7 +386,6 @@ typedef struct {
 	int x; int y;
 	int dx;	int dy;
 } SPRITE_ANIM_Phase;
-
 SPRITE_ANIM_Phase alien1phases[] = {
 	{
 		alien1_states, 
@@ -554,12 +578,18 @@ void setup() {
 	int i,j;
 	for (i=0; i < N_LED; i++)
 		pinMode(ledInfos[i].gpio, OUTPUT);
+	for (i=0; i < N_TEMPERATURE; i++) {
+		temperatureInfos[i].dhtP = new DHT(temperatureInfos[i].dht_gpio,temperatureInfos[i].dht_type);
+		temperatureInfos[i].dhtP->begin();
+	}
 	FastLED.addLeds<NEOPIXEL,STRIPLED_GPIO_0>(stripledInfos[0].stripP->getLeds(), STRIPLED_W_0*STRIPLED_H_0*N_PANELS_0);
 	Serial.begin(BPS_HOST);
 	wifiMacInit();
+#ifdef STRIPLED_SCREEN
 	stripledInfos[0].stripP->setup(fontPtrs[0]);
 	stripledInfos[0].stripP->setText(wifiMacStr);
 	setMessageDefaults();
+#endif
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
@@ -568,8 +598,8 @@ void setMessageDefaults() {
 	messageInfos[i_message].fontP = fontPtrs[11];
 	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
-	stripledInfos[i_message].stripP->setFgColor(CRGB(4,4,4));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
+	stripledInfos[i_message].stripP->setFgColor(RGB_FRONT);
 }
 
 /*
@@ -703,6 +733,14 @@ bool handleLEDRequest(const char * req) {
 		ledInfos[index].blink_on_ms = ledInfos[index].pollInfo.poll_ms;
 		return true;
 	}
+	if (strReq.endsWith("ON")) {
+		ledInfos[index].blink = 0;
+		ledInfos[index].state = HIGH;
+	}
+	else if (strReq.endsWith("OFF")) {
+		ledInfos[index].blink = 0;
+		ledInfos[index].state = LOW;
+	}
 	else
 		return false;
 	return true;
@@ -720,7 +758,7 @@ void updateMessageScroll(int index) {
     return;
 	messageInfos[index].offset = messageInfos[index].offset + 1;
 	if (messageInfos[index].offset >= stripledInfos[index].stripP->getTextWidth())
-		messageInfos[index].offset = MSG_SCROLL_OFFSET;
+		messageInfos[index].offset = -messageInfos[index].fontP->getWidth()*MSG_SCROLL_CHARS;
 	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
@@ -728,9 +766,9 @@ void updateMessageText(int index, String text) {
 	messageInfos[index].text = text;
 	messageInfos[index].offset = 0;
 	stripledInfos[index].stripP->setText(text);
-	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 	if (stripledInfos[index].stripP->getTextWidth() > stripledInfos[index].stripP->getWidth())
-		FastLED.delay(MSG_SCROLL_START_MS);
+		messageInfos[index].offset = -messageInfos[index].fontP->getWidth()*MSG_SCROLL_CHARS;
+	stripledInfos[index].stripP->displayText(messageInfos[index].offset);
 }
 
 void updateMessageAlign(int index, int align) {
@@ -770,8 +808,8 @@ void rotateStripledDisplay(int index) {
 void updateCharcodes(int index) {
 	int w = stripledInfos[index].stripP->getWidth();
 	int h = stripledInfos[index].stripP->getHeight();
-	CRGB bg = CRGB(0,0,0);
-	CRGB fg = CRGB(4,4,4);
+	CRGB bg = RGB_BLACK;
+	CRGB fg = RGB_FRONT;
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
 	stripledInfos[index].stripP->setFont(&fixedMedium_4x6);
 	stripledInfos[index].stripP->setText(String(charcodesInfos[index].charNext));
@@ -804,7 +842,7 @@ void resetSprites(int index) {
 void updateSprites(int index) {
 	int w = stripledInfos[index].stripP->getWidth();
 	int h = stripledInfos[index].stripP->getHeight();
-	CRGB bg = CRGB(0,0,0);
+	CRGB bg = RGB_BLACK;
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
 	spritesInfos[index].animInfoP->kind = ANIM_NONE;
 	for (int iSprite = 0; iSprite < spritesInfos[index].nSprites; iSprite++) {
@@ -981,6 +1019,9 @@ bool handleMSGRequest(const char * req) {
 	String strReq = req;
 	String strMsg = decodeUrl(strReq.substring(strReq.indexOf("/")+1));
 	updateMessageText(i_message, strMsg);
+#ifdef STRIPLED_SCREEN
+	displayingIpAddress = false;
+#endif
 	return true;
 }
 
@@ -1034,8 +1075,8 @@ bool handleSSIDRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
-	stripledInfos[i_message].stripP->setFgColor(CRGB(8,0,16));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
+	stripledInfos[i_message].stripP->setFgColor(CRGB(1,0,2));
 	updateMessageText(i_message, networks[i_network].SSID);
 	return true;
 }
@@ -1044,8 +1085,8 @@ bool handleIPRequest() {
 	if (i_network < 0 || i_network >= N_NETWORKS)
 		return false;
 	messageInfos[i_message].align = ALIGN_LEFT;
-	stripledInfos[i_message].stripP->setBgColor(CRGB(0,0,0));
-	stripledInfos[i_message].stripP->setFgColor(CRGB(0,8,16));
+	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
+	stripledInfos[i_message].stripP->setFgColor(CRGB(0,1,2));
 	updateMessageText(i_message, networks[i_network].address.toString());
 	return true;
 }
@@ -1071,6 +1112,16 @@ void replyHttpError(String strError) {
 	wifiClient.println("Access-Control-Allow-Origin: *");
 	wifiClient.println();
 	wifiClient.print(strError);
+	wifiClient.println();
+}
+
+void replyJsonStatus(String jsonStatus) {
+	wifiClient.println("HTTP/1.1 200 OK");
+	wifiClient.println("Content-Type: application/json");
+	wifiClient.println("Access-Control-Allow-Origin: *");
+	wifiClient.println("Connection: close");
+	wifiClient.println();
+	wifiClient.print(jsonStatus);
 	wifiClient.println();
 }
 
@@ -1121,6 +1172,10 @@ bool handleHttpRequest(const char * req) {
 	if (! strReq.startsWith("GET /"))
 		return false;
 	strReq = strReq.substring(5, strReq.indexOf(" HTTP"));
+	if (strReq.startsWith("STATUS")) {
+		replyJsonStatus(getJsonStatus());
+		return true;
+	}
 	bool result = dispatchHttpRequest(strReq.c_str());
 	if (result)
 		replyHttpSuccess(strReq);
@@ -1155,6 +1210,33 @@ void drawTextBitmap(BMP* bmp, String text, XBMFont font, unsigned int x0, unsign
  */
 
 
+String getJsonStatus() {;
+	String jsonStatus = "{";
+	int deviceIndex;
+	jsonStatus += "  \"LED\":[";
+	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++) {
+		if (deviceIndex) jsonStatus += ",";
+		jsonStatus += ledInfos[deviceIndex].state == HIGH ? "1" : "0";
+	}
+	jsonStatus += "]";
+	jsonStatus += ",  \"MSG\":[";
+	for (deviceIndex=0; deviceIndex<N_MESSAGE; deviceIndex++) {
+		if (deviceIndex) jsonStatus += ",";
+		jsonStatus += String("\"") + messageInfos[deviceIndex].text + String("\"");
+	}
+	jsonStatus += "]";
+        jsonStatus += ",  \"TEMPERATURE\":[";
+        for (deviceIndex=0; deviceIndex<N_TEMPERATURE; deviceIndex++) {
+                float temp = temperatureInfos[deviceIndex].dhtP->readTemperature();
+                if (isnan(temp))
+                        continue;
+                if (deviceIndex) jsonStatus += ",";
+                jsonStatus += String(temp);
+        }
+        jsonStatus += "]";
+	jsonStatus += "}";
+	return jsonStatus;
+}
 void updateStatus() {
 	int deviceIndex;
 	for (deviceIndex=0; deviceIndex<N_LED; deviceIndex++)
@@ -1162,7 +1244,9 @@ void updateStatus() {
 	for (deviceIndex=0; deviceIndex<N_STRIPLED; deviceIndex++) {
 		updateAnimation(deviceIndex);
 	}
+#ifdef STRIPLED_SCREEN
 	updateMessageScroll(i_message);
+#endif
 }
 
 void delayWithUpdateStatus(int delay_ms) {
@@ -1183,10 +1267,11 @@ void delayedWifiClientStop(int start_ms) {
 }
 
 void loop() {
-	int start_loop_ms;
+	int start_loop_ms, connect_ms;
 	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
+	connect_ms = millis();
 	setMessageDefaults();
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
@@ -1205,6 +1290,13 @@ void loop() {
 		}
 		updateStatus();
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
+#ifdef STRIPLED_SCREEN
+		if (displayingIpAddress && millis() - connect_ms > CONNECT_MSG_DELAY_MS) {
+			updateMessageText(i_message, "");
+			displayingIpAddress = false;
+		}
+#endif
 		wifiStatus = WiFi.status();
 	}
+  Serial.println("WiFi disconnected");
 }
