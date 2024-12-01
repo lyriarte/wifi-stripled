@@ -40,6 +40,7 @@
 
 #define REQ_BUFFER_SIZE 1024
 
+#define CONNECT_MSG_DELAY_MS 20000
 #define MAIN_LOOP_POLL_MS 10
 #define MINIMUM_UPDATE_MS 2
 
@@ -150,6 +151,9 @@ int wifiStatus = WL_IDLE_STATUS;
 char hostnameSSID[] = "ESP_XXXXXX";
 char wifiMacStr[] = "00:00:00:00:00:00";
 byte wifiMacBuf[6];
+#ifdef STRIPLED_SCREEN
+bool displayingIpAddress = false;
+#endif
 
 /* 
  * http request buffer
@@ -487,6 +491,7 @@ bool wifiNetConnect(wifiNetInfo *net, int retry) {
 		net->address = WiFi.localIP();
 #ifdef STRIPLED_SCREEN
 		handleIPRequest();
+		displayingIpAddress = true;
 #endif
 		if (MDNS.begin(hostnameSSID)) {
 			Serial.print("Registered mDNS hostname: ");
@@ -816,6 +821,9 @@ bool handleMSGRequest(const char * req) {
 	String strReq = req;
 	String strMsg = decodeUrl(strReq.substring(strReq.indexOf("/")+1));
 	updateMessageText(i_message, strMsg);
+#ifdef STRIPLED_SCREEN
+	displayingIpAddress = false;
+#endif
 	return true;
 }
 
@@ -1062,10 +1070,11 @@ void delayedWifiClientStop(int start_ms) {
 }
 
 void loop() {
-	int start_loop_ms;
+	int start_loop_ms, connect_ms;
 	delayWithUpdateStatus(1000);
 	while (!wifiConnect(WIFI_CONNECT_RETRY))
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
+	connect_ms = millis();
 	setMessageDefaults();
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
@@ -1084,6 +1093,12 @@ void loop() {
 		}
 		updateStatus();
 		pollDelay(MAIN_LOOP_POLL_MS, start_loop_ms);
+#ifdef STRIPLED_SCREEN
+		if (displayingIpAddress && millis() - connect_ms > CONNECT_MSG_DELAY_MS) {
+			updateMessageText(i_message, "");
+			displayingIpAddress = false;
+		}
+#endif
 		wifiStatus = WiFi.status();
 	}
   Serial.println("WiFi disconnected");
