@@ -550,6 +550,25 @@ bool handleLEDRequest(const char * req) {
 
 
 /*
+ * Strip led
+ */
+
+bool showGradient(int index, int src, int dst, int srcrgb, int dstrgb) {
+	if (src < 0 || src >= stripledCount(&stripledInfos[index]))
+		return false;
+	int srcr = srcrgb >> 16, srcg = srcrgb >> 8 & 0xFF, srcb = srcrgb & 0xFF;
+	if (dst <= src || dst >= stripledCount(&stripledInfos[index]))
+		return false;
+	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
+	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
+	for (int i=src; i<=dst; i++) {
+		stripledInfos[index].stripP->getLeds()[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
+	}
+  return true;
+}
+
+
+/*
  * Message text
  */
 
@@ -753,23 +772,13 @@ bool handleSTRIPLEDRequest(const char * req) {
 bool handleGRADIENTRequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
-	if (src < 0 || src >= stripledCount(&stripledInfos[i_stripled]))
-		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int srcrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
-	int srcr = srcrgb >> 16, srcg = srcrgb >> 8 & 0xFF, srcb = srcrgb & 0xFF;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dst = strReq.toInt();
-	if (dst <= src || dst >= stripledCount(&stripledInfos[i_stripled]))
-		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dstrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
-	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
-	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
-	for (int i=src; i<=dst; i++) {
-		stripledInfos[i_stripled].stripP->getLeds()[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
-	}
-  return true;
+  return showGradient(i_stripled, src, dst, srcrgb, dstrgb);
 }
 
 bool handleFILLRequest(const char * req) {
