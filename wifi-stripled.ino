@@ -553,16 +553,14 @@ bool handleLEDRequest(const char * req) {
  * Strip led
  */
 
-bool showGradient(int index, int src, int dst, int srcrgb, int dstrgb) {
+bool showGradient(int index, int src, int dst, CRGB srcrgb, CRGB dstrgb) {
 	if (src < 0 || src >= stripledCount(&stripledInfos[index]))
 		return false;
-	int srcr = srcrgb >> 16, srcg = srcrgb >> 8 & 0xFF, srcb = srcrgb & 0xFF;
 	if (dst <= src || dst >= stripledCount(&stripledInfos[index]))
 		return false;
-	int dstr = dstrgb >> 16, dstg = dstrgb >> 8 & 0xFF, dstb = dstrgb & 0xFF;
-	int dr = dstr-srcr, dg = dstg-srcg, db = dstb - srcb;
+	int dr = dstrgb.r-srcrgb.r, dg = dstrgb.g-srcrgb.g, db = dstrgb.b-srcrgb.b;
 	for (int i=src; i<=dst; i++) {
-		stripledInfos[index].stripP->getLeds()[i] = CRGB(min(255,max(0,dstr - dr*(dst-i)/(dst-src))), min(255,max(0,dstg - dg*(dst-i)/(dst-src))), min(255,max(0,dstb - db*(dst-i)/(dst-src))));
+		stripledInfos[index].stripP->getLeds()[i] = CRGB(min(255,max(0,dstrgb.r - dr*(dst-i)/(dst-src))), min(255,max(0,dstrgb.g - dg*(dst-i)/(dst-src))), min(255,max(0,dstrgb.b - db*(dst-i)/(dst-src))));
 	}
   return true;
 }
@@ -773,11 +771,11 @@ bool handleGRADIENTRequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	int srcrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	CRGB srcrgb = (uint32_t) strtol(strReq.substring(0,6).c_str(), NULL, 16);
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dst = strReq.toInt();
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	int dstrgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	CRGB dstrgb = (uint32_t) strtol(strReq.substring(0,6).c_str(), NULL, 16);
   return showGradient(i_stripled, src, dst, srcrgb, dstrgb);
 }
 
