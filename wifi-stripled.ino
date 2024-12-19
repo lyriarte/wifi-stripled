@@ -758,8 +758,8 @@ bool handleSTRIPLEDRequest(const char * req) {
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	if (strReq.startsWith("RGB/")) {
-		int rgb = (int) strtol(strReq.substring(4).c_str(), NULL, 16);
-		stripledInfos[i_stripled].stripP->getLeds()[index] = CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF);
+		CRGB rgb = (uint32_t) strtol(strReq.substring(4).c_str(), NULL, 16);
+		stripledInfos[i_stripled].stripP->getLeds()[index] = rgb;
 		return true;
 	}
 	else
@@ -797,8 +797,7 @@ bool handleFILLRequest(const char * req) {
 	if (dy < 1 || dy > stripledInfos[i_message].stripP->getHeight()-y0)
 		return false;
 	strReq = strReq.substring(strReq.indexOf("/")+1);
-	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
-	int r = rgb >> 16, g = rgb >> 8 & 0xFF, b = rgb & 0xFF;
+	CRGB rgb = (uint32_t) strtol(strReq.substring(0,6).c_str(), NULL, 16);
 	stripledInfos[i_message].stripP->fillBitmap(x0, y0, dx, dy, rgb);
 	stripledInfos[i_message].stripP->displayBitmap();
 	return true;
@@ -859,15 +858,15 @@ bool handleLINERequest(const char * req) {
 
 bool handleBGRequest(const char * req) {
 	String strReq = req;
-	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
-	updateMessageBg(i_message, CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF));
+	CRGB rgb = (uint32_t) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	updateMessageBg(i_message, rgb);
 	return true;
 }
 
 bool handleFGRequest(const char * req) {
 	String strReq = req;
-	int rgb = (int) strtol(strReq.substring(0,6).c_str(), NULL, 16);
-	updateMessageFg(i_message, CRGB(rgb >> 16, rgb >> 8 & 0xFF, rgb & 0xFF));
+	CRGB rgb = (uint32_t) strtol(strReq.substring(0,6).c_str(), NULL, 16);
+	updateMessageFg(i_message, rgb);
 	return true;
 }
 
