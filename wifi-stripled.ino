@@ -566,6 +566,17 @@ bool showGradient(int index, int src, int dst, CRGB srcrgb, CRGB dstrgb) {
 }
 
 
+bool showRainbow(int index, int src, int dst, int bright) {
+	if (src < 0 || src >= stripledCount(&stripledInfos[index]))
+		return false;
+	if (dst <= src || dst >= stripledCount(&stripledInfos[index]))
+		return false;
+  return showGradient(index, src, dst/3, CRGB(bright, 0, 0), CRGB(0, bright, 0))
+    && showGradient(index, dst/3, 2*dst/3, CRGB(0, bright, 0), CRGB(0, 0, bright))
+    && showGradient(index, 2*dst/3, dst, CRGB(0, 0, bright), CRGB(bright, 0, 0));
+}
+
+
 /*
  * Message text
  */
@@ -767,6 +778,16 @@ bool handleSTRIPLEDRequest(const char * req) {
 	return true;
 }
 
+bool handleRAINBOWRequest(const char * req) {
+	String strReq = req;
+	int src = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int dst = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int bright = strReq.toInt();
+  return showRainbow(i_stripled, src, dst, bright);
+}
+
 bool handleGRADIENTRequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
@@ -946,6 +967,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleCHARCODESRequest(strReq.substring(10).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("RAINBOW/"))
+		result = handleRAINBOWRequest(strReq.substring(8).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
 		result = handleGRADIENTRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("FILL/"))
