@@ -50,8 +50,9 @@
 const CRGB RGB_BLACK = CRGB(0,0,0);
 const CRGB RGB_FRONT = CRGB(3,2,1);
 
-CRGB temperatureColors[] = {CRGB(1,0,1),CRGB(0,0,1),CRGB(0,1,0),CRGB(1,1,0),CRGB(1,0,0)};
+CRGB temperatureColors[] = {CRGB(3,0,3),CRGB(0,0,6),CRGB(0,6,0),CRGB(3,3,0),CRGB(5,1,0),CRGB(6,0,0)};
 #define N_TEMPERATURE_COLORS (sizeof(temperatureColors) / sizeof(CRGB))
+#define TEMPERATURE_DELTA -3
 
 #define STRIPLED_GPIO_0	5
 #define BITMAP_W_0	32
@@ -605,6 +606,26 @@ bool showTemperatureGradient(int index, int src, int dst, int bright, int temp, 
 }
 
 
+bool showTemperature(int index, int src, int temp) {
+	temp = max(-10,min(50,temp+TEMPERATURE_DELTA));
+  int nled= 1+(temp+9)%10;
+	int icol = max(1+(temp-1)/10,0);
+  CRGB rgb = temperatureColors[icol];
+  if (temp < 0) {
+    nled = 10 - nled;
+    rgb = temperatureColors[0];
+  }
+  else if (temp == 0)
+    rgb = CRGB(2,2,2);
+  int i = src;
+  while (i<src + nled)
+    stripledInfos[index].stripP->getLeds()[i++] = rgb;
+	while (i<src + 10)
+    stripledInfos[index].stripP->getLeds()[i++] = RGB_BLACK;
+  return true;
+}
+
+
 /*
  * Message text
  */
@@ -817,6 +838,8 @@ bool handleSTRIPLEDRequest(const char * req) {
 bool handleTEMPERATURERequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
+	if (strReq.indexOf("/") < 0)
+		return showTemperature(i_stripled, src, (int)temperatureInfos[0].dhtP->readTemperature());
 	strReq = strReq.substring(strReq.indexOf("/")+1);
 	int dst = strReq.toInt();
 	strReq = strReq.substring(strReq.indexOf("/")+1);
@@ -1017,6 +1040,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
 	else if (strReq.startsWith("TEMPERATURE/"))
 		result = handleTEMPERATURERequest(strReq.substring(12).c_str());
+	else if (strReq.startsWith("TEMPERATURE"))
+		result = showTemperature(i_stripled, 0, (int)temperatureInfos[0].dhtP->readTemperature());
 	else if (strReq.startsWith("RAINBOW/"))
 		result = handleRAINBOWRequest(strReq.substring(8).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
