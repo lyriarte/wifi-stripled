@@ -577,6 +577,23 @@ bool showRainbow(int index, int src, int dst, int bright) {
 }
 
 
+bool showTemperatureGradient(int index, int src, int dst, int bright, int temp, int maxtemp) {
+	if (src < 0 || src >= stripledCount(&stripledInfos[index]))
+		return false;
+	if (dst <= src || dst >= stripledCount(&stripledInfos[index]))
+		return false;
+  showGradient(index, src, dst*0.2, CRGB(bright, 0, bright), CRGB(0, 0, bright));
+  showGradient(index, dst*0.2, dst*0.4, CRGB(0, 0, bright), CRGB(0, bright, 0));
+  showGradient(index, dst*0.4, dst*0.5, CRGB(0, bright, 0), CRGB(bright, bright, 0));
+  showGradient(index, dst*0.5, dst, CRGB(bright, bright, 0), CRGB(bright, 0, 0));
+  int nleds = dst - src;
+  int nshow = min(nleds, min(temp, maxtemp) * nleds / maxtemp);
+  for (int i=dst; i>src + nshow; i--)
+    stripledInfos[index].stripP->getLeds()[i] = RGB_BLACK;
+  return true;
+}
+
+
 /*
  * Message text
  */
@@ -778,6 +795,18 @@ bool handleSTRIPLEDRequest(const char * req) {
 	return true;
 }
 
+bool handleTEMPERATURERequest(const char * req) {
+	String strReq = req;
+	int src = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int dst = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int bright = strReq.toInt();
+	strReq = strReq.substring(strReq.indexOf("/")+1);
+	int maxtemp = strReq.toInt();
+  return showTemperatureGradient(i_stripled, src, dst, bright, (int)temperatureInfos[0].dhtP->readTemperature(), maxtemp);
+}
+
 bool handleRAINBOWRequest(const char * req) {
 	String strReq = req;
 	int src = strReq.toInt();
@@ -967,6 +996,8 @@ bool dispatchHttpRequest(const char * req) {
 		result = handleCHARCODESRequest(strReq.substring(10).c_str());
 	else if (strReq.startsWith("STRIPLED/"))
 		result = handleSTRIPLEDRequest(strReq.substring(9).c_str());
+	else if (strReq.startsWith("TEMPERATURE/"))
+		result = handleTEMPERATURERequest(strReq.substring(12).c_str());
 	else if (strReq.startsWith("RAINBOW/"))
 		result = handleRAINBOWRequest(strReq.substring(8).c_str());
 	else if (strReq.startsWith("GRADIENT/"))
