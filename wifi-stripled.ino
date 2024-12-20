@@ -47,6 +47,9 @@
 const CRGB RGB_BLACK = CRGB(0,0,0);
 const CRGB RGB_FRONT = CRGB(3,2,1);
 
+CRGB temperatureColors[] = {CRGB(1,0,1),CRGB(0,0,1),CRGB(0,1,0),CRGB(1,1,0),CRGB(1,0,0)};
+#define N_TEMPERATURE_COLORS (sizeof(temperatureColors) / sizeof(CRGB))
+
 #define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
@@ -582,12 +585,15 @@ bool showTemperatureGradient(int index, int src, int dst, int bright, int temp, 
 		return false;
 	if (dst <= src || dst >= stripledCount(&stripledInfos[index]))
 		return false;
-  showGradient(index, src, dst*0.2, CRGB(bright, 0, bright), CRGB(0, 0, bright));
-  showGradient(index, dst*0.2, dst*0.4, CRGB(0, 0, bright), CRGB(0, bright, 0));
-  showGradient(index, dst*0.4, dst*0.5, CRGB(0, bright, 0), CRGB(bright, bright, 0));
-  showGradient(index, dst*0.5, dst, CRGB(bright, bright, 0), CRGB(bright, 0, 0));
   int nleds = dst - src;
   int nshow = min(nleds, min(temp, maxtemp) * nleds / maxtemp);
+  for (int i=0; i<N_TEMPERATURE_COLORS-1; i++) {
+    showGradient(index, 
+      src+i+(i*nleds)/N_TEMPERATURE_COLORS, 
+      i+2<N_TEMPERATURE_COLORS ? src+i+((i+1)*nleds)/N_TEMPERATURE_COLORS : dst,
+      CRGB(temperatureColors[i].r*bright, temperatureColors[i].g*bright, temperatureColors[i].b*bright), 
+      CRGB(temperatureColors[i+1].r*bright, temperatureColors[i+1].g*bright, temperatureColors[i+1].b*bright));
+  }
   for (int i=dst; i>src + nshow; i--)
     stripledInfos[index].stripP->getLeds()[i] = RGB_BLACK;
   return true;
