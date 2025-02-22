@@ -21,7 +21,10 @@
 #define FONT_8x13_FIXED_BOLD
 #include <StripDisplay.h>
 
+#define STRIPLED_SCREEN
+#ifdef STRIPLED_SCREEN
 #include "XBMFont.h"
+#endif
 #include "qdbmp.h"
 
 /* **** **** **** **** **** ****
@@ -49,8 +52,6 @@ const CRGB RGB_FRONT = CRGB(3,2,1);
 
 CRGB temperatureColors[] = {CRGB(1,0,1),CRGB(0,0,1),CRGB(0,1,0),CRGB(1,1,0),CRGB(1,0,0)};
 #define N_TEMPERATURE_COLORS (sizeof(temperatureColors) / sizeof(CRGB))
-
-#define STRIPLED_SCREEN
 
 #define STRIPLED_GPIO_0	5
 #define BITMAP_W_0	32
@@ -99,6 +100,7 @@ StripLEDPanel panels_0[] = {
  * XBM font
  */
 
+#ifdef STRIPLED_SCREEN
 #define N_FONT 12
 XBMFont * fontPtrs[N_FONT] = {
 	&fixedMedium_4x6,
@@ -114,6 +116,7 @@ XBMFont * fontPtrs[N_FONT] = {
 	&fixedMedium_8x13,	
 	&fixedBold_8x13	
 };
+#endif
 
 /*
  * WiFi
@@ -392,18 +395,20 @@ void setup() {
 #ifdef STRIPLED_SCREEN
 	stripledInfos[0].stripP->setup(fontPtrs[0]);
 	stripledInfos[0].stripP->setText(wifiMacStr);
-	setMessageDefaults();
 #endif
+	setMessageDefaults();
 	Serial.print("WiFi.macAddress: ");
 	Serial.println(wifiMacStr);
 }
 
 void setMessageDefaults() {
+#ifdef STRIPLED_SCREEN
 	messageInfos[i_message].fontP = fontPtrs[11];
 	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	stripledInfos[i_message].stripP->setAlignment(ALIGN_CENTER);
 	stripledInfos[i_message].stripP->setBgColor(RGB_BLACK);
 	stripledInfos[i_message].stripP->setFgColor(RGB_FRONT);
+#endif
 }
 
 /*
@@ -664,6 +669,7 @@ void updateCharcodes(int index) {
 	CRGB bg = RGB_BLACK;
 	CRGB fg = RGB_FRONT;
 	stripledInfos[index].stripP->fillBitmap(0, 0, w, h, bg);
+#ifdef STRIPLED_SCREEN
 	stripledInfos[index].stripP->setFont(&fixedMedium_4x6);
 	stripledInfos[index].stripP->setText(String(charcodesInfos[index].charNext));
 	stripledInfos[index].stripP->renderText(0,0,fg);
@@ -673,11 +679,14 @@ void updateCharcodes(int index) {
 		w - (messageInfos[index].fontP->getWidth() + 1), 
 		(h - messageInfos[index].fontP->getHeight()) / 2, 
 		fg);
+#endif
 	stripledInfos[index].stripP->displayBitmap();
+#ifdef STRIPLED_SCREEN
 	stripledInfos[index].stripP->setAlignment(messageInfos[index].align);
 	if (charcodesInfos[index].charNext >= charcodesInfos[index].charEnd)
 		charcodesInfos[index].animInfoP->kind = ANIM_NONE;
 	charcodesInfos[index].charNext++;
+#endif
 }
 
 void resetSprites(int index) {
@@ -767,6 +776,7 @@ bool handleSTRIPRequest(const char * req) {
 }
 
 bool handleFONTRequest(const char * req) {
+#ifdef STRIPLED_SCREEN
 	String strReq = req;
 	int index = strReq.toInt();
 	if (index < 0 || index >= N_FONT)
@@ -775,6 +785,9 @@ bool handleFONTRequest(const char * req) {
 	stripledInfos[i_message].stripP->setFont(messageInfos[i_message].fontP);
 	updateMessageText(i_message, messageInfos[i_message].text);
 	return true;
+#else
+	return false;
+#endif
 }
 
 bool handleCHARCODESRequest(const char * req) {
