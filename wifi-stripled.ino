@@ -1189,6 +1189,7 @@ void loop() {
 		delayWithUpdateStatus(WIFI_CONNECT_RETRY_DELAY_MS);
 	connect_ms = millis();
 	setMessageDefaults();
+	showGradient(0,0,STRIPLED_W_0-1,RGB_BLACK,RGB_BLACK);
 	wifiServer.begin();
 	delayWithUpdateStatus(WIFI_SERVER_DELAY_MS);
 	while (wifiStatus == WL_CONNECTED) {
