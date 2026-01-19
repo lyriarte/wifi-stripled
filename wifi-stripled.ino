@@ -92,6 +92,7 @@ StripLEDPanel panels_0[] = {
 #define ANIM_ROTATE_MS 50
 #define ANIM_CHARCODES_MS 500
 #define ANIM_SPRITES_MS 300
+#define ANIM_TEMPERATURE_MS 10000
 
 /* **** **** **** **** **** ****
  * Global variables
@@ -292,7 +293,8 @@ int i_message = 0;
 	ANIM_NONE,
 	ANIM_ROTATE,
 	ANIM_CHARCODES,
-	ANIM_SPRITES
+	ANIM_SPRITES,
+	ANIM_TEMPERATURE
 };
 
 typedef struct {
@@ -763,6 +765,9 @@ void updateAnimation(int index) {
 		case ANIM_SPRITES:
 			updateSprites(animInfos[index].strip_index);
 			break;
+		case ANIM_TEMPERATURE:
+			showTemperature(i_stripled, 0, (int)temperatureInfos[0].dhtP->readTemperature());
+			break;
 	}
 }
 
@@ -911,6 +916,10 @@ bool handleANIMRequest(const char * req) {
 		animInfos[i_stripled].kind = ANIM_SPRITES;
 		animInfos[i_stripled].pollInfo.poll_ms = ANIM_SPRITES_MS;
 		resetSprites(i_stripled);
+	}
+	else if (strReq == "TEMPERATURE") {
+		animInfos[i_stripled].kind = ANIM_TEMPERATURE;
+		animInfos[i_stripled].pollInfo.poll_ms = ANIM_TEMPERATURE_MS;
 	}
 	return true;
 }
